@@ -1,15 +1,16 @@
-# $Id: tcb.spec,v 1.22 2003/04/18 12:49:17 solar Exp $
+# $Id: tcb.spec,v 1.23 2003/04/18 13:09:27 solar Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
-Version: 0.9.8.5
+Version: 0.9.8.6
 Release: owl1
 License: BSD or GPL
 Group: System Environment/Base
 URL: http://www.openwall.com/tcb/
 Source: ftp://ftp.openwall.com/pub/projects/tcb/%{name}-%{version}.tar.gz
 PreReq: /sbin/ldconfig, %_libexecdir/chkpwd
-BuildRequires: glibc-crypt_blowfish, pam-devel
+Requires: glibc-crypt_blowfish
+BuildRequires: glibc-crypt_blowfish-devel, pam-devel
 BuildRoot: /override/%{name}-%{version}
 
 %description
@@ -82,6 +83,12 @@ rmdir /sbin/chkpwd.d
 /usr/lib/libtcb.so
 
 %changelog
+* Wed Oct 29 2003 Solar Designer <solar@owl.openwall.com> 0.9.8.6-owl1
+- Don't depend on *BSD-style asprintf(3) semantics as Ulrich has rejected
+that patch.
+- Require glibc-crypt_blowfish-devel for builds, but just glibc-crypt_blowfish
+for package installation.
+
 * Fri Apr 18 2003 Solar Designer <solar@owl.openwall.com> 0.9.8.5-owl1
 - Use bold face for component names in .SH NAME, but avoid *roff commands
 to not confuse makewhatis and apropos(1).
