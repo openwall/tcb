@@ -1,3 +1,12 @@
+2003-04-18  Solar Designer  <solar@owl.openwall.com>
+
+	* progs/tcb_convert.8: Avoid *roff commands within .SH NAME to
+	not confuse makewhatis and apropos(1).
+
+	* LICENSE: Updated copyrights for year 2003.
+
+	* tcb.spec: 0.9.8.5.
+
 2003-04-16  Dmitry V. Levin  <ldv@altlinux.org>
 
 	* pam_tcb/support.c: Implemented proper fake salt creation
