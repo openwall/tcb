@@ -2,13 +2,13 @@
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
-Version: 0.9.4
+Version: 0.9.5
 Release: 1owl
 License: GPL or BSD
 Group: System Environment/Base
 Source: %{name}-%{version}.tar.gz
 BuildRequires: glibc-devel >= 2.1.3-13owl, pam-devel
-PreReq: pam >= 0.75-11owl
+PreReq: pam >= 0.75-12owl
 BuildRoot: /override/%{name}-%{version}
 
 %description
@@ -37,7 +37,7 @@ CFLAGS="$RPM_OPT_FLAGS" make
 
 %install
 rm -rf $RPM_BUILD_ROOT
-make install-non-root FAKEROOT=$RPM_BUILD_ROOT MANDIR=%_mandir
+make install-non-root install-pam_unix FAKEROOT=$RPM_BUILD_ROOT MANDIR=%_mandir
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -52,6 +52,11 @@ rm -rf $RPM_BUILD_ROOT
 /lib/libtcb.so.*
 /lib/libtcb.so
 /lib/security/pam_tcb.so
+/lib/security/pam_unix.so
+/lib/security/pam_unix_acct.so
+/lib/security/pam_unix_auth.so
+/lib/security/pam_unix_passwd.so
+/lib/security/pam_unix_session.so
 /sbin/tcb_convert
 /sbin/tcb_unconvert
 %attr(0710,root,chkpwd) %dir /sbin/chkpwd.d
@@ -59,6 +64,7 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/tcb_chkpwd
 %_mandir/man5/tcb.5.*
 %_mandir/man5/pam_tcb.5.*
+%_mandir/man5/pam_unix.5.*
 %_mandir/man8/tcb_convert.8.*
 %_mandir/man8/tcb_unconvert.8.*
 
@@ -68,6 +74,13 @@ rm -rf $RPM_BUILD_ROOT
 /usr/lib/libtcb.a
 
 %changelog
+* Thu Nov 15 2001 Solar Designer <solar@owl.openwall.com>
+- Provide compatibility symlinks and a man page for pam_unix.
+- tcb_convert(8) man page fixes from Nergal.
+- Moved all of pam_tcb's prompts and messages to support.h and made them
+more consistent with those used by pam_passwdqc.
+- Improved logging.
+
 * Thu Nov 01 2001 Solar Designer <solar@owl.openwall.com>
 - Changed everything all over the place during October. ;-)
 
