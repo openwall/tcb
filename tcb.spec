@@ -1,4 +1,4 @@
-# $Id: tcb.spec,v 1.8 2002/02/04 09:49:11 solar Exp $
+# $Id: tcb.spec,v 1.9 2002/02/04 10:10:15 solar Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
@@ -7,7 +7,7 @@ Release: owl1
 License: BSD or GPL
 Group: System Environment/Base
 Source: %{name}-%{version}.tar.gz
-PreReq: /sbin/chkpwd.d
+PreReq: /sbin/ldconfig, /sbin/chkpwd.d
 BuildRequires: glibc-crypt_blowfish, pam-devel
 BuildRoot: /override/%{name}-%{version}
 
@@ -42,20 +42,19 @@ make install-non-root install-pam_unix FAKEROOT=$RPM_BUILD_ROOT MANDIR=%_mandir
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%post -p /sbin/ldconfig
+%postun -p /sbin/ldconfig
+
 %triggerin -- shadow-utils
 grep -q '^shadow:[^:]*:42:' /etc/group && \
 	chgrp shadow /sbin/chkpwd.d/tcb_chkpwd && \
 	chmod 2711 /sbin/chkpwd.d/tcb_chkpwd
-
-%post -p /sbin/ldconfig
-%postun -p /sbin/ldconfig
 
 %files
 %defattr(-,root,root)
 %doc LICENSE
 /lib/libnss_tcb.so.2
 /lib/libtcb.so.*
-/lib/libtcb.so
 /lib/security/pam_tcb.so
 /lib/security/pam_unix.so
 /lib/security/pam_unix_acct.so
@@ -76,6 +75,7 @@ grep -q '^shadow:[^:]*:42:' /etc/group && \
 %defattr(-,root,root)
 /usr/include/tcb.h
 /usr/lib/libtcb.a
+/lib/libtcb.so
 
 %changelog
 * Mon Feb 04 2002 Solar Designer <solar@owl.openwall.com>
