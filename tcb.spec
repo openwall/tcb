@@ -1,4 +1,4 @@
-# $Id: tcb.spec,v 1.27 2003/11/02 19:38:58 solar Exp $
+# $Id: tcb.spec,v 1.28 2004/06/26 22:00:48 ldv Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
@@ -38,8 +38,8 @@ building tcb-aware applications.
 CFLAGS="$RPM_OPT_FLAGS -DENABLE_SETFSUGID" make
 
 %install
-rm -rf $RPM_BUILD_ROOT
-make install-non-root install-pam_unix DESTDIR=$RPM_BUILD_ROOT MANDIR=%_mandir
+rm -rf %buildroot
+make install-non-root install-pam_unix DESTDIR=%buildroot MANDIR=%_mandir
 
 %post -p /sbin/ldconfig
 %postun -p /sbin/ldconfig
