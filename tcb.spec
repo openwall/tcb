@@ -1,9 +1,9 @@
-# $Id: tcb.spec,v 1.28 2004/06/26 22:00:48 ldv Exp $
+# $Id: tcb.spec,v 1.29 2004/11/23 22:40:49 mci Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
 Version: 0.9.8.8
-Release: owl1
+Release: owl2
 License: BSD or GPL
 Group: System Environment/Base
 URL: http://www.openwall.com/tcb/
@@ -35,7 +35,7 @@ building tcb-aware applications.
 %setup -q
 
 %build
-CFLAGS="$RPM_OPT_FLAGS -DENABLE_SETFSUGID" make
+CFLAGS="$RPM_OPT_FLAGS -DENABLE_SETFSUGID" %__make
 
 %install
 rm -rf %buildroot
@@ -66,7 +66,7 @@ rmdir /sbin/chkpwd.d
 /lib/security/pam_unix_session.so
 /sbin/tcb_convert
 /sbin/tcb_unconvert
-%attr(0700,root,root) %_libexecdir/chkpwd/tcb_chkpwd
+%attr(0700,root,root) %verify(not mode group) %_libexecdir/chkpwd/tcb_chkpwd
 %_mandir/man5/tcb.5*
 %_mandir/man8/pam_tcb.8*
 %_mandir/man8/pam_unix.8*
@@ -75,11 +75,16 @@ rmdir /sbin/chkpwd.d
 
 %files devel
 %defattr(-,root,root)
-/usr/include/tcb.h
-/usr/lib/libtcb.a
-/usr/lib/libtcb.so
+%_includedir/tcb.h
+%_libdir/libtcb.a
+%_libdir/libtcb.so
 
 %changelog
+* Wed Jan 05 2005 (GalaxyMaster) <galaxy@owl.openwall.com> 0.9.8.8-owl2
+- Added a %verify macro to tcb_chkpwd, we are controlling permissions and
+group owner of it via control.
+- Cleaned up the spec.
+
 * Fri Jun 25 2004 Dmitry V. Levin <ldv@owl.openwall.com> 0.9.8.8-owl1
 - tcb_unconvert: Zero errno before each readdir(3) call.
 
