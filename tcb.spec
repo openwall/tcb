@@ -1,8 +1,8 @@
-# $Id: tcb.spec,v 1.16 2002/10/21 15:23:29 nergal Exp $
+# $Id: tcb.spec,v 1.17 2002/10/24 00:45:19 solar Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
-Version: 0.9.8
+Version: 0.9.8.1
 Release: owl1
 License: BSD or GPL
 Group: System Environment/Base
@@ -84,7 +84,7 @@ rmdir /sbin/chkpwd.d
 * Thu Oct 24 2002 Solar Designer <solar@owl.openwall.com>
 - Cleaned up the recent changes.
 
-* Mon Oct 21 2002 Rafal Wojtczuk <nergal@owl.openwall.com>
+* Mon Aug 19 2002 Rafal Wojtczuk <nergal@owl.openwall.com>
 - Merged enhancements which remove 32K users limit.
 - Added ENABLE_SETFSUGID.
 - Pass the username to the helper binary such that it can handle non-unique
