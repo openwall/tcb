@@ -1,4 +1,4 @@
-# $Id: tcb.spec,v 1.23 2003/04/18 13:09:27 solar Exp $
+# $Id: tcb.spec,v 1.24 2003/10/29 16:16:47 solar Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
@@ -7,11 +7,11 @@ Release: owl1
 License: BSD or GPL
 Group: System Environment/Base
 URL: http://www.openwall.com/tcb/
-Source: ftp://ftp.openwall.com/pub/projects/tcb/%{name}-%{version}.tar.gz
+Source: ftp://ftp.openwall.com/pub/projects/tcb/%name-%version.tar.gz
 PreReq: /sbin/ldconfig, %_libexecdir/chkpwd
 Requires: glibc-crypt_blowfish
 BuildRequires: glibc-crypt_blowfish-devel, pam-devel
-BuildRoot: /override/%{name}-%{version}
+BuildRoot: /override/%name-%version
 
 %description
 The tcb package consists of three components: pam_tcb, libnss_tcb, and
@@ -25,7 +25,7 @@ NSS modules and is also used by programs from the shadow-utils package.
 %package devel
 Summary: Libraries and header files for building tcb-aware applications.
 Group: Development/Libraries
-Requires: %{name} = %{version}-%{release}
+Requires: %name = %version-%release
 
 %description devel
 This package contains static libraries and header files needed for
