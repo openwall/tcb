@@ -2,7 +2,7 @@
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
-Version: 0.9.6
+Version: 0.9.7
 Release: 1owl
 License: BSD or GPL
 Group: System Environment/Base
@@ -78,6 +78,10 @@ grep -q '^shadow:[^:]*:42:' /etc/group && \
 /usr/lib/libtcb.a
 
 %changelog
+* Sun Dec 09 2001 Solar Designer <solar@owl.openwall.com>
+- Various minor fixes from Dmitry V. Levin of ALT Linux.
+- A GNU-style ChangeLog will now be maintained.
+
 * Sun Nov 18 2001 Solar Designer <solar@owl.openwall.com>
 - Patches from Nergal to make delays on failure work with the "fork"
 option and to not produce a warning when su'ing to pseudo-users from
