@@ -1,4 +1,4 @@
-# $Id: tcb.spec,v 1.21 2003/04/17 12:36:42 ldv Exp $
+# $Id: tcb.spec,v 1.22 2003/04/18 12:49:17 solar Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
@@ -83,7 +83,8 @@ rmdir /sbin/chkpwd.d
 
 %changelog
 * Fri Apr 18 2003 Solar Designer <solar@owl.openwall.com> 0.9.8.5-owl1
-- Avoid *roff commands within .SH NAME to not confuse makewhatis and apropos(1).
+- Use bold face for component names in .SH NAME, but avoid *roff commands
+to not confuse makewhatis and apropos(1).
 
 * Wed Apr 16 2003 Dmitry V. Levin <ldv@owl.openwall.com> 0.9.8.4-owl1
 - In pam_tcb, implemented proper fake salt creation to avoid a timing attack.

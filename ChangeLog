@@ -1,7 +1,8 @@
 2003-04-18  Solar Designer  <solar@owl.openwall.com>
 
-	* progs/tcb_convert.8: Avoid *roff commands within .SH NAME to
-	not confuse makewhatis and apropos(1).
+	* misc/tcb.5, pam_tcb/pam_tcb.8, progs/tcb_convert.8: Use bold
+	face for component names in .SH NAME, but avoid *roff commands
+	to not confuse makewhatis and apropos(1).
 
 	* LICENSE: Updated copyrights for year 2003.
 
