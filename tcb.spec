@@ -1,4 +1,4 @@
-# $Id: tcb.spec,v 1.29 2004/11/23 22:40:49 mci Exp $
+# $Id: tcb.spec,v 1.30 2005/01/12 16:59:06 galaxy Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
@@ -81,8 +81,8 @@ rmdir /sbin/chkpwd.d
 
 %changelog
 * Wed Jan 05 2005 (GalaxyMaster) <galaxy@owl.openwall.com> 0.9.8.8-owl2
-- Added a %verify macro to tcb_chkpwd, we are controlling permissions and
-group owner of it via control.
+- Tell RPM to not verify permissions and group ownership of tcb_chkpwd since
+we're owl-control'ing it.
 - Cleaned up the spec.
 
 * Fri Jun 25 2004 Dmitry V. Levin <ldv@owl.openwall.com> 0.9.8.8-owl1
