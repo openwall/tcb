@@ -141,13 +141,13 @@ static struct tcb_privs glob_privs = { {0}, 0, -1, -1, 0 };
 
 #ifdef ENABLE_SETFSUGID
 #include <sys/fsuid.h>
-/* 
-Two setfsuid in a row - stupid, but how the hell am I supposed to check
-whether setfsuid succeeded ?
-*/ 
+/*
+ * Two setfsuid() in a row - stupid, but how the hell am I supposed to check
+ * whether setfsuid() succeeded?
+ */
 int ch_uid(uid_t uid, uid_t *save)
 {
-	uid_t tmp = setfsuid(uid); 
+	uid_t tmp = setfsuid(uid);
 	if (save)
 		*save = tmp;
 	return setfsuid(uid) == uid;
@@ -156,7 +156,7 @@ int ch_gid(gid_t gid, gid_t *save)
 {
 	gid_t tmp = setfsgid(gid);
 	if (save)
-		*save = tmp; 
+		*save = tmp;
 	return setfsgid(gid) == gid;
 }
 #else

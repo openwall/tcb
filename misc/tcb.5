@@ -1,4 +1,4 @@
-.TH TCB 5 "4 August 2002" "Openwall Project"
+.TH TCB 5 "24 October 2002" "Openwall Project"
 .SH NAME
 tcb \- alternative password shadowing scheme
 .SH PROBLEM
@@ -116,30 +116,29 @@ The user management tools initially required heavy patching to support
 the tcb scheme.
 .SH WORKAROUNDS FOR FILESYSTEMS LIMITS
 In case of ext2fs, the maximum number of hardlinks to a single file is
-limited to 32000. Therefore, there can be at most 32000 directory entries
-in 
-.IR /etc/tcb .
-The filesystem layout described above limits the number of users on the
-system to 32000, as there is a single directory in 
-.IR /etc/tcb
-per user.
-
-The workaround: a tcb directory of user X can be located not only in 
-.IR /etc/tcb
-, but also in 
+limited to 32000.  Therefore, with this filesystem, there can be at most
+31998 directory entries in
+.I /etc/tcb
+and, with the filesystem layout described above, at most 31998 users.
+.PP
+The workaround: a tcb directory of user U can be located not only in
+.IR /etc/tcb ,
+but also in
 .IR /etc/tcb/:some/path .
 In the latter case, there should be a symlink
-.IR /etc/tcb/X -> /etc/tcb/:some/path/X
-
-Starting with tcb 0.9.8, directories which match the shell 
-pattern 
-.IR /etc/tcb/:*
-are not treated as per-user directories by tcb libraries. These directories are 
-reserved to hold symlinked per-user directories, and for other purposes.
-
-By default, shadow suite utilities create directory entries directly in /etc/tcb;
-if one expects more then 32000 users on the system, one can switch on the
-symlink creation anytime by editing login.defs (5) config file.
+.IR /etc/tcb/U " -> " /etc/tcb/:some/path/U .
+.PP
+Starting with tcb 0.9.8, directories which match the shell pattern
+.I /etc/tcb/:*
+are not treated as per-user directories by tcb libraries.  These directories
+are reserved to hold symlinked per-user directories, and for other purposes.
+.PP
+By default, shadow suite utilities create directory entries directly in
+.IR /etc/tcb ;
+if one expects more than 31998 users on the system, one can switch on the
+symlink creation anytime by editing
+.BR login.defs (5)
+config file.
 .SH AUTHORS
 The tcb suite was implemented for Openwall GNU/*/Linux by Rafal Wojtczuk
 <nergal@owl.openwall.com> and Solar Designer <solar@owl.openwall.com>.

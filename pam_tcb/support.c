@@ -450,7 +450,7 @@ static int unix_run_helper_binary(const pam_handle_t *pamh,
 
 	sigchld = signal(SIGCHLD, SIG_DFL);
 	sigpipe = signal(SIGPIPE, SIG_IGN);
-	
+
 	switch ((child = fork())) {
 	case -1:
 		D(("fork failed"));
@@ -497,7 +497,7 @@ static int unix_run_helper_binary(const pam_handle_t *pamh,
 			if (write_loop(fds[1], pass, len) != len)
 				fail = 1;
 		}		
-		pass = NULL; 
+		pass = NULL;
 		close(fds[1]);
 		/* wait for helper to complete */
 		if (waitpid(child, &status, 0) != child) {

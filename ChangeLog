@@ -1,8 +1,20 @@
-2002-08-20 Rafal Wojtczuk <nergal@owl.openwall.com>
-       
-	* Merged enhancements which remove 32K users limit
+2002-10-24  Solar Designer  <solar@owl.openwall.com>
 
-	* added ENABLE_SETFSUGID
+	* libs/nss.c, libs/libtcb.c, pam_tcb/support.c,
+	progs/tcb_chkpwd.c, progs/tcb_unconvert.c, misc/tcb.5: Cleaned
+	up the recent changes.
+
+2002-10-20  Rafal Wojtczuk  <nergal@owl.openwall.com>
+
+	* libs/nss.c, progs/tcb_unconvert.c, misc/tcb.5: Merged
+	enhancements which remove 32K users limit.
+
+	* libs/libtcb.c, include/tcb.h: Added ENABLE_SETFSUGID.
+
+	* pam_tcb/support.c, progs/tcb_chkpwd.c: Pass the username to
+	the helper binary such that it can handle non-unique UIDs.
+
+	* tcb.spec, libs/Makefile: Set version to 0.9.8.
 
 2002-08-19  Solar Designer  <solar@owl.openwall.com>
 

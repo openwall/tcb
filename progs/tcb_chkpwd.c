@@ -20,7 +20,7 @@
 IO_LOOP(read_loop, read,)
 IO_LOOP(write_loop, write, const)
 
-#define MAX_DATA_LENGTH		255
+#define MAX_DATA_LENGTH			255
 
 #define AUTH_PASSED			TCB_MAGIC
 #define AUTH_FAILED			1
@@ -80,15 +80,11 @@ static int unix_verify_password(const char *user, const char *pass, int nullok)
 	return retval;
 }
 
-int is_two_strings(char * data, int len)
+static int is_two_strings(char *data, int len)
 {
 	data[len] = 0;
-	if (strlen(data) >= len - 1)
-		return 0;
-	else
-		return 1;
+	return (strlen(data) < len - 1);
 }
-	
 
 int main(void)
 {
@@ -120,10 +116,10 @@ int main(void)
 		syslog(LOG_DEBUG, "no user/password supplied");
 	else if (datalen >= MAX_DATA_LENGTH)
 		syslog(LOG_DEBUG, "user/password too long");
-	else if (!is_two_strings(userandpass, datalen)) 
+	else if (!is_two_strings(userandpass, datalen))
 		syslog(LOG_DEBUG, "malformed data from parent");
 	else
-		retval = unix_verify_password(userandpass, 
+		retval = unix_verify_password(userandpass,
 			userandpass + strlen(userandpass) + 1, nullok);
 
 	memset(userandpass, 0, sizeof(userandpass));
