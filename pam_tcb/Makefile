@@ -24,8 +24,8 @@ install-non-root: install
 
 install:
 	mkdir -p $(FAKEROOT)/lib/security
-	install -m $(SHLIBMODE) $(PAM_TCB) $(FAKEROOT)/lib/security
-	install -m 644 pam_tcb.5 $(FAKEROOT)/$(MANDIR)/man5
+	install -m $(SHLIBMODE) $(PAM_TCB) $(FAKEROOT)/lib/security/
+	install -m 644 pam_tcb.8 $(FAKEROOT)/$(MANDIR)/man8/
 
 install-pam_unix:
 	ln -s $(PAM_TCB) $(FAKEROOT)/lib/security/pam_unix.so
@@ -33,7 +33,7 @@ install-pam_unix:
 	ln -s $(PAM_TCB) $(FAKEROOT)/lib/security/pam_unix_auth.so
 	ln -s $(PAM_TCB) $(FAKEROOT)/lib/security/pam_unix_passwd.so
 	ln -s $(PAM_TCB) $(FAKEROOT)/lib/security/pam_unix_session.so
-	install -m 644 pam_unix.5 $(FAKEROOT)/$(MANDIR)/man5
+	install -m 644 pam_unix.8 $(FAKEROOT)/$(MANDIR)/man8/
 
 clean:
 	rm -f *.o *~ $(PAM_TCB)

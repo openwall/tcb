@@ -1,8 +1,8 @@
-# $Id: tcb.spec,v 1.12 2002/06/21 14:34:46 solar Exp $
+# $Id: tcb.spec,v 1.13 2002/07/06 22:20:59 solar Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
-Version: 0.9.7.3
+Version: 0.9.7.4
 Release: owl1
 License: BSD or GPL
 Group: System Environment/Base
@@ -68,11 +68,11 @@ rmdir /sbin/chkpwd.d
 /sbin/tcb_convert
 /sbin/tcb_unconvert
 %attr(0700,root,root) %_libexecdir/chkpwd/tcb_chkpwd
-%_mandir/man5/tcb.5.*
-%_mandir/man5/pam_tcb.5.*
-%_mandir/man5/pam_unix.5.*
-%_mandir/man8/tcb_convert.8.*
-%_mandir/man8/tcb_unconvert.8.*
+%_mandir/man5/tcb.5*
+%_mandir/man8/pam_tcb.8*
+%_mandir/man8/pam_unix.8*
+%_mandir/man8/tcb_convert.8*
+%_mandir/man8/tcb_unconvert.8*
 
 %files devel
 %defattr(-,root,root)
@@ -81,6 +81,9 @@ rmdir /sbin/chkpwd.d
 /lib/libtcb.so
 
 %changelog
+* Sun Aug 04 2002 Solar Designer <solar@owl.openwall.com>
+- Moved the pam_tcb and pam_unix manual pages to section 8.
+
 * Sun Jul 07 2002 Solar Designer <solar@owl.openwall.com>
 - No longer let root enforced password changes (sp_lstchg == 0) take
 precedence over expired accounts (sp_expire).

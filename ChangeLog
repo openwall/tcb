@@ -1,3 +1,17 @@
+2002-08-04  Solar Designer  <solar@owl.openwall.com>
+
+	* pam_tcb/pam_tcb.5, pam_tcb/pam_unix.5: Moved these manual
+	pages to section 8 (the files are now gone).
+
+	* pam_tcb/pam_tcb.8, pam_tcb/pam_unix.8: New files, based on
+	the section 5 manual pages with minor changes.
+
+	* tcb.spec, misc/tcb.5, progs/tcb_convert.8, pam_tcb/Makefile:
+	Updates to reflect the above change.
+
+	* libs/Makefile: Use trailing slashes after directories with
+	install commands.
+
 2002-07-07  Solar Designer  <solar@owl.openwall.com>
 
 	* pam_tcb/pam_unix_acct.c, pam_tcb/pam_unix_passwd.c: No
