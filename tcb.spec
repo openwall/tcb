@@ -1,4 +1,4 @@
-# $Id: tcb.spec,v 1.7 2001/12/09 02:00:34 solar Exp $
+# $Id: tcb.spec,v 1.8 2002/02/04 09:49:11 solar Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
@@ -7,7 +7,7 @@ Release: owl1
 License: BSD or GPL
 Group: System Environment/Base
 Source: %{name}-%{version}.tar.gz
-PreReq: pam >= 0.75-12owl, /sbin/chkpwd.d
+PreReq: /sbin/chkpwd.d
 BuildRequires: glibc-crypt_blowfish, pam-devel
 BuildRoot: /override/%{name}-%{version}
 
