@@ -1,4 +1,4 @@
-.TH TCB_CONVERT 8 "4 August 2002" "Openwall Project"
+.TH TCB_CONVERT 8 "30 October 2002" "Openwall Project"
 .SH NAME
 .ad l
 tcb_convert, tcb_unconvert \- utilities to convert to and from the tcb password shadowing scheme
@@ -107,7 +107,9 @@ USE_TCB yes
 9.
 Now you should remove the
 .I /etc/shadow
-file.  It is important that you do so such that processes possessing
+file and its backups (if any), such as
+.IR /etc/shadow- .
+It is important that you do so such that processes possessing
 the "shadow" group don't get read access to all of your old password
 hashes (many of which may remain valid for quite some time).
 .TP
