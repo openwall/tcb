@@ -1,3 +1,9 @@
+2002-07-07  Solar Designer  <solar@owl.openwall.com>
+
+	* pam_tcb/pam_unix_acct.c, pam_tcb/pam_unix_passwd.c: No
+	longer let root enforced password changes (sp_lstchg == 0)
+	take precedence over expired accounts (sp_expire).
+
 2002-05-19  Solar Designer  <solar@owl.openwall.com>
 
 	* Make.defs: Renamed SYSBIN to SBINDIR, define LIBEXECDIR.

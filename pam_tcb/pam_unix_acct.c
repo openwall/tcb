@@ -49,8 +49,7 @@ static int acct_shadow(const char *user)
 
 	curdays = time(NULL) / (60 * 60 * 24);
 	D(("today is %d, last change %d", curdays, spw->sp_lstchg));
-	if ((curdays > spw->sp_expire) && (spw->sp_expire != -1)
-	    && (spw->sp_lstchg != 0))
+	if ((curdays > spw->sp_expire) && (spw->sp_expire != -1))
 		return ACCT_3;
 
 	if ((curdays > (spw->sp_lstchg + spw->sp_max + spw->sp_inact)) &&

@@ -488,8 +488,7 @@ static int unix_verify_shadow(const char *user)
 			/* too late */
 			return PAM_ACCT_EXPIRED;
 		else
-		if (curdays > spw->sp_expire &&
-		    spw->sp_expire != -1 && spw->sp_lstchg != 0)
+		if (curdays > spw->sp_expire && spw->sp_expire != -1)
 			/* account expired */
 			return PAM_ACCT_EXPIRED;
 	}
