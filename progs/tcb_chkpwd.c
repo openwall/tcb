@@ -36,9 +36,10 @@ static int unix_verify_password(const char *user, const char *pass, int nullok)
 	endpwent();
 
 	stored_hash = NULL;
-	if (pw && getuid() != pw->pw_uid)
-		return AUTH_FAILED;
 	if (pw) {
+		if (getuid() != pw->pw_uid)
+			return AUTH_FAILED;
+
 		if (!strcmp(pw->pw_passwd, "x")) {
 			spw = getspnam(user);
 			endspent();

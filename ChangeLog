@@ -1,3 +1,10 @@
+2002-10-31  Solar Designer  <solar@owl.openwall.com>
+
+	* progs/tcb_chkpwd.c: Optimized unix_verify_password() a bit,
+	from Dmitry V. Levin <ldv@altlinux.org>.
+
+	* tcb.spec: 0.9.8.3.
+
 2002-10-30  Solar Designer  <solar@owl.openwall.com>
 
 	* progs/tcb_convert.8: Noted that /etc/shadow backups need to be
