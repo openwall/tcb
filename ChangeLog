@@ -1,3 +1,12 @@
+2003-11-02  Solar Designer  <solar@owl.openwall.com>
+
+	* pam_tcb/Makefile: Use -fPIC.
+
+	* libs/Makefile, misc/Makefile, pam_tcb/Makefile, progs/Makefile,
+	tcb.spec: Renamed FAKEROOT to DESTDIR.
+
+	* tcb.spec: 0.9.8.7.
+
 2003-10-29  Solar Designer  <solar@owl.openwall.com>
 
 	* libs/nss.c, libs/libtcb.c, pam_tcb/support.c,

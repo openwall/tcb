@@ -1,8 +1,8 @@
-# $Id: tcb.spec,v 1.25 2003/10/29 16:22:24 solar Exp $
+# $Id: tcb.spec,v 1.26 2003/10/29 17:31:13 solar Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
-Version: 0.9.8.6
+Version: 0.9.8.7
 Release: owl1
 License: BSD or GPL
 Group: System Environment/Base
@@ -39,7 +39,7 @@ CFLAGS="$RPM_OPT_FLAGS -DENABLE_SETFSUGID" make
 
 %install
 rm -rf $RPM_BUILD_ROOT
-make install-non-root install-pam_unix FAKEROOT=$RPM_BUILD_ROOT MANDIR=%_mandir
+make install-non-root install-pam_unix DESTDIR=$RPM_BUILD_ROOT MANDIR=%_mandir
 
 %post -p /sbin/ldconfig
 %postun -p /sbin/ldconfig
@@ -80,6 +80,10 @@ rmdir /sbin/chkpwd.d
 /usr/lib/libtcb.so
 
 %changelog
+* Sun Nov 02 2003 Solar Designer <solar@owl.openwall.com> 0.9.8.7-owl1
+- Build the PAM module with -fPIC.
+- Renamed FAKEROOT to DESTDIR.
+
 * Wed Oct 29 2003 Solar Designer <solar@owl.openwall.com> 0.9.8.6-owl1
 - Don't depend on *BSD-style asprintf(3) semantics as Ulrich has rejected
 that patch.

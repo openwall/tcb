@@ -28,11 +28,11 @@ $(LIBNSS): nss.o $(LIBTCB_LONG)
 install-non-root: install
 
 install:
-	install -m $(SHLIBMODE) $(LIBTCB_LONG) $(FAKEROOT)/lib/
-	ln -sf $(LIBTCB_LONG) $(FAKEROOT)/lib/$(LIBTCB)
-	ln -sf ../../lib/$(LIBTCB) $(FAKEROOT)/usr/lib/libtcb.so
-	install -m $(SHLIBMODE) $(LIBNSS) $(FAKEROOT)/lib/
-	install -m 644 $(LIBTCB_A) $(FAKEROOT)/usr/lib/
+	install -m $(SHLIBMODE) $(LIBTCB_LONG) $(DESTDIR)/lib/
+	ln -sf $(LIBTCB_LONG) $(DESTDIR)/lib/$(LIBTCB)
+	ln -sf ../../lib/$(LIBTCB) $(DESTDIR)/usr/lib/libtcb.so
+	install -m $(SHLIBMODE) $(LIBNSS) $(DESTDIR)/lib/
+	install -m 644 $(LIBTCB_A) $(DESTDIR)/usr/lib/
 
 clean:
 	rm -f *.o *~ $(LIBTCB)* libtcb.so $(LIBNSS) *.a
