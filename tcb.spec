@@ -1,4 +1,4 @@
-# $Id: tcb.spec,v 1.2 2001/11/15 04:45:06 solar Exp $
+# $Id: tcb.spec,v 1.3 2001/11/16 03:04:55 solar Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
@@ -33,7 +33,7 @@ building tcb-aware applications.
 %setup -q
 
 %build
-CFLAGS="$RPM_OPT_FLAGS" make
+CFLAGS="$RPM_OPT_FLAGS -DHAVE_PAM_FAIL_DELAY" make
 
 %install
 rm -rf $RPM_BUILD_ROOT
