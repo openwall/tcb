@@ -1,0 +1,13 @@
+2001-11-28  Dmitry V. Levin  <ldv@alt-linux.org>
+
+	* pam_tcb/support.c: Replaced signal call with sigaction call.
+
+	* pam_tcb/support.c: Fixed possible "dereferencing NULL" typo.
+
+	* progs/tcb_chkpwd.c: Test also stdout for isatty.
+
+	* progs/Makefile: Create relative symlink instead of absolute.
+
+	* libs/nss.c: Fixed glibc-2.2.4 compilation warning.
+	* pam_tcb/pam_unix_passwd.c: Likewise.
+	* progs/tcb_unconvert.c: Likewise.

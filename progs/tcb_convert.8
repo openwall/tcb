@@ -1,0 +1,135 @@
+.TH TCB_CONVERT 8 "15 November 2001" "Openwall Project"
+.SH NAME
+.ad l
+tcb_convert, tcb_unconvert \- utilities to convert to and from the tcb password shadowing scheme
+.SH SYNOPSIS
+.B tcb_convert
+.br
+.B tcb_unconvert
+.SH DESCRIPTION
+.ad b
+.B tcb_convert
+converts
+.I /etc/shadow
+into a set of files under
+.I /etc/tcb/
+(see
+.BR tcb (5)).
+During this operation
+.I /etc/shadow
+is locked.
+.PP
+.B tcb_unconvert
+converts the files under
+.I /etc/tcb/
+back into
+.IR /etc/shadow .
+Because it is impractical to lock all of the tcb shadow files,
+.B tcb_unconvert
+temporarily changes the group ownership on
+.I /etc/tcb/
+to group "sys" such that the
+.BR passwd (1)
+utility will refuse to work during the conversion.
+.SH MIGRATING TO TCB
+In order to migrate a system to the tcb password shadowing scheme from
+the traditional
+.IR /etc/passwd + /etc/shadow
+setup, the following steps are necessary:
+.TP
+1.
+Install the tcb package as well as tcb-aware shadow-utils.
+.TP
+2.
+Create the group "auth" if it isn't present.
+.TP
+3.
+If you want processes possessing both "shadow" and "auth" groups to
+have read-only access to all tcb files, add or uncomment the following
+line in
+.IR /etc/login.defs :
+.sp
+.ad l
+TCB_AUTH_GROUP yes
+.ad b
+.TP
+4.
+As root, execute
+.BR tcb_convert .
+.TP
+5.
+In
+.IR /etc/nsswitch.conf ,
+find the "shadow" entry and replace the "files" method with "tcb"; the
+edited line should look like this:
+.sp
+.ad l
+shadow: tcb nisplus nis
+.ad b
+.TP
+6.
+In
+.I /etc/pam.d/
+files, change occurrences of
+.B pam_unix.so
+or
+.B pam_pwdb.so
+(if any) to
+.BR pam_tcb.so .
+You may wish to browse the
+.BR pam_tcb (5)
+manual for information on additional tuning.
+.TP
+7.
+In each file under /etc/pam.d/ which has a "password" line (most notably in
+.IR /etc/pam.d/passwd )
+add the
+.BR write_to "=tcb"
+option to the instance of
+.B pam_tcb
+used as the password changing module.  The line should look similar to this:
+.sp
+.ad l
+password required /lib/security/pam_tcb.so shadow use_authtok write_to=tcb
+.ad b
+.TP
+8.
+Edit
+.I /etc/login.defs
+such that it contains the (uncommented) line:
+.sp
+.ad l
+USE_TCB yes
+.ad b
+.TP
+9.
+Now you should remove the
+.I /etc/shadow
+file.  It is important that you do so such that processes possessing
+the "shadow" group don't get read access to all of your old password
+hashes (many of which may remain valid for quite some time).
+.TP
+10.
+As root,
+.sp
+.ad l
+chown root.shadow /usr/bin/passwd /etc/pam.d/passwd
+.br
+chmod 2711 /usr/bin/passwd
+.br
+chmod 640 /etc/pam.d/passwd
+.ad b
+.TP
+11.
+Test if everything works properly, most notably logging in to the
+system.
+.SH THE RETURN TO SHADOW
+If for some reason you decide to return from tcb to the traditional
+password shadowing scheme, you can do so with the use of
+.B tcb_unconvert
+and by reverting some of the actions listed in "MIGRATING TO TCB",
+above.
+.SH SEE ALSO
+.BR login.defs (5),
+.BR pam_tcb (5),
+.BR tcb (5)

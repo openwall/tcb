@@ -1,0 +1,134 @@
+.TH TCB 5 "16 October 2001" "Openwall Project"
+.SH NAME
+tcb \- alternative password shadowing scheme
+.SH PROBLEM
+With the traditional password shadowing scheme, password hashes and
+password aging information of all users is stored in one file,
+.IR /etc/shadow .
+Therefore, if a process requires access to information on a single
+user, it is forced to possess privileges which are sufficient to
+access data on all users.  This is a design flaw, which is most
+clearly visible in the case of
+.BR passwd (1)
+utility.  Let's assume that unprivileged users are to be allowed to
+change their own passwords.  Whatever permissions are assigned to
+.IR /etc/shadow ,
+.BR passwd (1),
+invoked by unprivileged user U, must be able to modify the contents of
+this file.  If malicious user U finds a way to control the
+.BR passwd (1)
+process (with the help of a buffer overflow or another bug in the
+.BR passwd (1)
+code, in the libraries it uses, or in the kernel), the user will be
+able to change passwords of all users and thus obtain full control
+over the system.
+.SH SOLUTION
+The solution is straightforward \- each user is assigned its own,
+separate shadow-style file.  User U's shadow file is owned by U, so
+.BR passwd (1)
+invoked by U does not require superuser privileges.
+.PP
+.de lstart
+.sp
+.in 0
+.nf
+..
+.de lend
+.fi
+.in
+.sp
+..
+The directory where all users' shadow files reside is
+.IR /etc/tcb :
+.lstart
+drwx--x---    2 root     shadow       1024 Jul  4 01:18 /etc/tcb
+.lend
+For each user, there is a directory under
+.I /etc/tcb
+with appropriate ownership and permissions:
+.lstart
+# ls -l /etc/tcb
+total 2
+drwx--s---    2 root     auth         1024 Jul  4 01:18 root
+drwx--s---    2 user     auth         1024 Jul  4 01:18 user
+.lend
+and so on.
+Each of the directories contains a shadow file for just the
+appropriate user:
+.lstart
+# ls -l /etc/tcb/user
+total 1
+-rw-r-----    1 user     auth           91 Jul  4 01:18 shadow
+.lend
+The per-user directories are also used as scratch space for temporary
+and lock files which are needed during password change.
+.SH ADVANTAGES
+This design has the following benefits:
+.TP
+1.
+.BR passwd (1)
+needs to be SGID to group shadow only, not SUID to root.
+.BR chage (1)
+and
+.IR /sbin/tcb_chkpwd
+are SGID to group shadow too, which with the tcb scheme means they only
+possess the privilege to access the user's own shadow file entry.
+A bug in one of these utilities may at most give a malicious user
+direct access to their own shadow file.
+.TP
+2.
+If a process needs to possess read-only access to all shadow files, it
+is sufficient to assign it supplementary groups "shadow" and "auth".
+.TP
+3.
+On systems supporting NSS, this scheme is completely transparent to
+applications which need read-only access to shadow file information.
+The libnss_tcb library implements
+.BR getspnam (3)
+and other related functions with their traditional semantics.
+Password changing is provided by
+.BR pam_tcb (5),
+a PAM module.
+.PP
+See the
+.BR tcb_convert (8)
+manual page for instructions on how to enable the tcb scheme
+seamlessly.
+.SH DISADVANTAGES
+Honestly, there are a few minor ones:
+.TP
+1.
+It is impractical to lock all of the shadow database (see
+.BR tcb_unconvert (8)).
+.TP
+2.
+Giving a process read-only access to all shadow files as described
+above has the side-effect of also giving it read-write access to the
+shadow entry of the (pseudo-)user it is running as.
+.TP
+3.
+It is impossible to give a process privileges sufficient for read-only
+access to a single shadow file only, without also having it actually
+run as the user.
+.TP
+4.
+The user management tools initially required heavy patching to support
+the tcb scheme.
+.SH AUTHORS
+The tcb suite was implemented for Openwall GNU/*/Linux by Rafal Wojtczuk
+<nergal@owl.openwall.com> and Solar Designer <solar@owl.openwall.com>.
+.B pam_tcb
+is meant to be backwards-compatible with
+.BR pam_unix ,
+therefore some design decisions are cloned from
+.BR pam_unix .
+Also certain less critical code fragments, as well as some of the code
+layout, are taken from the Linux-PAM implementation of
+.BR pam_unix .
+The names of contributors to
+.B pam_unix
+can be found under orig_copyright/ in source distribution of the tcb suite.
+.SH SEE ALSO
+.BR login.defs (5),
+.BR pam_tcb (5),
+.BR tcb_convert (8)

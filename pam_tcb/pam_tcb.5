@@ -1,0 +1,333 @@
+.TH PAM_TCB 5 "12 November 2001" "Openwall Project"
+.SH NAME
+pam_tcb \- authentication, account, session, and password management
+PAM module for Unix with support for the tcb password shadowing scheme
+.SH DESCRIPTION
+.B pam_tcb
+is a PAM module which deals with Unix accounts and provides
+functionality for all four PAM management groups: authentication,
+account management, session management, and password management.
+It is a successor to
+.B pam_unix
+and
+.BR pam_pwdb .
+.TP
+.B authentication
+.B pam_tcb
+relies exclusively on
+.BR getpwnam (3)
+and
+.BR getspnam (3)
+interfaces to obtain information necessary for user authentication.
+It performs password hashing with
+.BR crypt_ra (3)
+or
+.BR crypt (3).
+This means that
+.B pam_tcb
+will use NSS and will handle any password hashing method
+supported by the system libraries.
+.TP
+.B account management
+When the account information is available via
+.BR getspnam (3),
+the account management part of
+.B pam_tcb
+checks for expired accounts or passwords.  It uses the shadow file
+entry fields as described in
+.BR shadow (5).
+It is responsibility of applications to interpret the PAM error status
+and possibly invoke the password management group to get an expired
+password changed.
+.TP
+.B session management
+By default,
+.B pam_tcb
+logs the opening and closing of PAM sessions via
+.BR syslog (3).
+It uses
+.B LOG_AUTH
+as the syslog facility and, unless the
+.B noopenlog
+option is given, sets the ident to "pam_tcb".
+This functionality may be disabled with the
+.B nolog
+option (see below).
+.TP
+.B password management
+.BR pam_chauthtok (3)
+performs two passes through the password management stack:
+.B PAM_PRELIM_CHECK
+and
+.BR PAM_UPDATE_AUTHTOK .
+During the
+.B PAM_PRELIM_CHECK
+phase,
+.B pam_tcb
+may optionally prompt for and will always verify the old password.
+This allows for stacking of a password policy enforcement module such as
+.B pam_passwdqc
+before
+.BR pam_tcb ,
+without requiring this other module to take over performing any of the
+tasks of
+.BR pam_tcb .
+The actual password change happens during the
+.B PAM_UPDATE_AUTHTOK
+phase.
+.sp
+When changing passwords,
+.B pam_tcb
+is able to modify the following password databases:
+.sp
+.I /etc/passwd
+file, see
+.BR passwd (5);
+.br
+.I /etc/shadow
+file, see
+.BR shadow (5);
+.br
+.I /etc/tcb/
+directory structure, see
+.BR tcb (5);
+.br
+NIS and NIS+.
+.SH OPTIONS
+Most of the options recognized by
+.B pam_unix
+or
+.B pam_pwdb
+are valid for
+.B pam_tcb
+as well and have identical meaning.
+There are some semantic differences though, so you are advised to
+browse the list below.  All the boolean options are off by default.
+The default values of non-boolean options are given.
+.TP
+.B debug
+Log debugging information via
+.BR syslog (3).
+.TP
+.B audit
+Log even more debugging information, including unknown usernames.
+This has the risk of potentially logging a password that a user could
+have given instead of a username.
+.TP
+.B noopenlog
+Normally,
+.B pam_tcb
+will call
+.BR openlog (3)
+with ident "pam_tcb" before logging and
+.BR closelog (3)
+afterwards.  The
+.B noopenlog
+option disables this behavior.
+.TP
+.B nolog
+Suppress logging.
+.TP
+.B blank_nolog
+Do not log failed authentication attempts when a blank password is
+tried.  If this option is not used, some services, notably
+.BR sshd (8),
+may generate false alarms.
+.TP
+.B nullok
+Permit blank passwords.
+.TP
+.B use_first_pass
+Don't prompt the user for passwords, take them from
+.B PAM_AUTHTOK
+and possibly
+.B PAM_OLDAUTHTOK
+items instead.
+.TP
+.B try_first_pass
+Take passwords from
+.B PAM_AUTHTOK
+and possibly
+.B PAM_OLDAUTHTOK
+items, but prompt the user if the appropriate PAM item is unset.
+.TP
+.B use_authtok
+Like
+.BR use_first_pass ,
+but applies to the (new)
+.B PAM_AUTHTOK
+only.  This is intended for stacking password management modules.
+.TP
+.B not_set_pass
+Don't set the PAM items with passwords used by this module.
+.TP
+.B likeauth
+When called as a credential setting module, return the same value as
+was returned during the authentication.
+.TP
+.B passwd
+If set,
+.B pam_tcb
+may use the second field of user's "passwd" entry (usually taken from
+.IR /etc/passwd )
+as the password hash.
+See below for details.
+.TP
+.B shadow
+If set,
+.B pam_tcb
+may use the second field of user's "shadow" entry (usually taken from
+.I /etc/shadow
+or a tcb shadow file) as the password hash.
+See below for details.
+.TP
+.B nisplus
+If set,
+.B pam_tcb
+will acquire the user's EUID before obtaining the password hash.
+If you're using NIS+, you need to turn this on.
+See below for details.
+.TP
+.BR write_to =
+This option determines where
+.B pam_tcb
+should store new password hashes when changing passwords.
+Possible settings are: "passwd", "shadow", "tcb", and "nis".
+The default is "shadow".
+.TP
+.B md5
+When updating a user's password, hash the new password with the
+obsolete FreeBSD-derived MD5-based algorithm.
+.TP
+.BR prefix =
+When updating a user's password, generate the salt with the specified
+.I prefix
+(which determines the hashing method to use).
+The default is "$2a$", which requests
+.BR bcrypt ,
+a Blowfish-based hashing method which supports variable iteration
+counts.
+.TP
+.BR count =
+The number of iterations of an underlying cryptographic primitive to
+use when hashing passwords.  The default is 0, which lets the selected
+hashing algorithm pick its default iteration count.
+.sp
+It is highly recommended that you override this setting.  Please refer to
+.BR crypt (3)
+for information on supported hashing methods, their
+.I prefix
+strings, and their
+.I count
+settings.
+.TP
+.B plain_crypt
+Use plain
+.BR crypt (3)
+instead of
+.BR crypt_ra (3).
+This may be required to access hashing methods for which no reentrant
+implementation exists in the system libraries.
+.TP
+.B nodelay
+Do not delay after an unsuccessful authentication attempt.
+.TP
+.B fork
+Create child processes for accessing shadow files.
+Using this option one can be sure that after a call to
+.BR pam_end (3)
+there is no sensitive data left in the process' address space.
+However, this option may confuse some of the more complicated
+applications and it has some performance overhead.
+.TP
+.BR helper =
+If the hashed password cannot be retrieved by
+.B pam_tcb
+and the UID of the user being authenticated is equal to the real UID
+.B pam_tcb
+runs as,
+.B pam_tcb
+will execute a privileged helper program to perform authentication.
+This option determines path to the program's binary.
+If an empty helper path is given, no helper will be executed.
+The default is
+.IR /sbin/tcb_chkpwd .
+.SH OBTAINING PASSWORD HASHES
+The following algorithm is used by
+.B pam_tcb
+to retrieve the password hash for a user:
+.sp
+.ad l
+.in +4
+.ti -4
+if
+.RB ( passwd
+option is set and
+.B pw_passwd
+field is not equal to "x" nor "*NP*")
+.br
+.in +8
+.ti -4
+use
+.B pw_passwd
+field as the hash;
+.in -8
+.ti -4
+if
+.RB ( nisplus
+option is set) {
+.in +8
+.ti -4
+try to acquire EUID of the user; if unsuccessful, fail;
+.br
+.ti -4
+obtain the
+.B "struct spwd"
+for the user with
+.BR getspnam (3);
+.br
+.ti -4
+regain the previous EUID;
+.br
+.ti -4
+use
+.B sp_pwdp
+field as the hash;
+.in -8
+.ti -4
+}
+.ti -4
+if
+.RB ( shadow
+option is set and
+.B pw_passwd
+field is equal to "x")
+.in +8
+.ti -4
+use
+.B sp_pwdp
+field as the hash;
+.in -8
+.ti -4
+if all the above failed, fail.
+.in -4
+.ad b
+.SH BUGS
+The current
+.B pam_tcb
+implementation is not thread-safe (just like
+.B pam_unix
+and
+.BR pam_pwdb ).
+.SH SEE ALSO
+.BR crypt (3),
+.BR crypt_ra (3),
+.BR getpwnam (3),
+.BR getspnam (3),
+.BR shadow (3),
+.BR login.defs (5),
+.BR passwd (5),
+.BR shadow (5),
+.BR tcb (5),
+.BR pam (8),
+.BR tcb_convert (8)

@@ -1,0 +1,6 @@
+These files contain the copyright notices from the Linux-PAM pam_unix
+implementation.  They are here so that the authors of pam_unix get
+appropriate credit for the pieces taken from pam_unix for this tcb
+implementation's needs.  However, please note that the corresponding
+source files in this tcb suite are VERY different from pam_unix ones.
+There's hardly a single non-trivial line left unmodified.
