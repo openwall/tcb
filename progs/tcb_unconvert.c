@@ -163,8 +163,7 @@ static int copy_from_tcb(void)
 	 * errno to 0 before calling readdir().  If errno is set to non-zero
 	 * on return, an error occurred.
 	 */
-	errno = 0;
-	while ((entry = readdir(tcbdir))) {
+	while ((errno = 0, entry = readdir(tcbdir))) {
 		if (!strcmp(entry->d_name, ".") ||
 		    !strcmp(entry->d_name, "..") || entry->d_name[0] == ':')
 			continue;
