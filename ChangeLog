@@ -1,3 +1,8 @@
+2002-08-19  Solar Designer  <solar@owl.openwall.com>
+
+	* tcb.spec, libs/Makefile: Moved libtcb.so symlink to /usr/lib
+	(patch from Dmitry V. Levin).
+
 2002-08-04  Solar Designer  <solar@owl.openwall.com>
 
 	* pam_tcb/pam_tcb.5, pam_tcb/pam_unix.5: Moved these manual
@@ -28,7 +33,7 @@
 
 	* misc/Makefile: Deal with SBINDIR and LIBEXECDIR.
 
-2001-11-28  Dmitry V. Levin  <ldv@alt-linux.org>
+2001-11-28  Dmitry V. Levin  <ldv@altlinux.org>
 
 	* pam_tcb/support.c: Replaced signal call with sigaction call.
 

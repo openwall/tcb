@@ -30,7 +30,7 @@ install-non-root: install
 install:
 	install -m $(SHLIBMODE) $(LIBTCB_LONG) $(FAKEROOT)/lib/
 	ln -sf $(LIBTCB_LONG) $(FAKEROOT)/lib/$(LIBTCB)
-	ln -sf $(LIBTCB) $(FAKEROOT)/lib/libtcb.so
+	ln -sf ../../lib/$(LIBTCB) $(FAKEROOT)/usr/lib/libtcb.so
 	install -m $(SHLIBMODE) $(LIBNSS) $(FAKEROOT)/lib/
 	install -m 644 $(LIBTCB_A) $(FAKEROOT)/usr/lib/
 
