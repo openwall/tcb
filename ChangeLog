@@ -1,3 +1,15 @@
+2003-10-29  Solar Designer  <solar@owl.openwall.com>
+
+	* libs/nss.c, libs/libtcb.c, pam_tcb/support.c,
+	pam_tcb/pam_unix_passwd.c, pam_tcb/pam_unix_acct.c,
+	progs/tcb_convert.c, progs/tcb_unconvert.c: Don't depend on
+	*BSD-style asprintf(3) semantics as Ulrich has rejected that
+	patch.
+
+	* README: New file, explains how tcb may be built on non-Owl.
+
+	* tcb.spec: 0.9.8.6.
+
 2003-04-18  Solar Designer  <solar@owl.openwall.com>
 
 	* misc/tcb.5, pam_tcb/pam_tcb.8, progs/tcb_convert.8: Use bold

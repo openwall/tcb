@@ -346,8 +346,7 @@ int _unix_user_in_db(const char *user, char *hash)
 			/* ENOENT, it must be */
 			return 0;
 		retval = 0;
-		asprintf(&tcb_shadow, TCB_FMT, user);
-		if (tcb_shadow) {
+		if (asprintf(&tcb_shadow, TCB_FMT, user) >= 0) {
 			retval = user_in_file(tcb_shadow, user, hash);
 			free(tcb_shadow);
 		}
@@ -692,8 +691,7 @@ static int do_record_failure(pam_handle_t *pamh, const char *user, int retval)
 {
 	char *data_name;
 
-	asprintf(&data_name, "%s%s", DATA_FAIL_PREFIX, user);
-	if (!data_name) {
+	if (asprintf(&data_name, "%s%s", DATA_FAIL_PREFIX, user) < 0) {
 		_log_err(LOG_CRIT, "Out of memory");
 		return PAM_BUF_ERR;
 	}

@@ -33,8 +33,7 @@ static int copy_user_from_tcb(const char *user, FILE *outf)
 
 	retval = -1;
 
-	asprintf(&tcbname, TCB_FMT, user);
-	if (!tcbname) {
+	if (asprintf(&tcbname, TCB_FMT, user) < 0) {
 		perror("asprintf");
 		goto out;
 	}

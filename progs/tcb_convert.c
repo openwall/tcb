@@ -96,8 +96,7 @@ static int copy_user_to_tcb(const char *user, char *linebuf, FILE *inf)
 		goto out;
 	}
 
-	asprintf(&tcbname, "%s/%s", TCB_DIR, user);
-	if (!tcbname) {
+	if (asprintf(&tcbname, "%s/%s", TCB_DIR, user) < 0) {
 		perror("asprintf");
 		goto out;
 	}
@@ -117,8 +116,7 @@ static int copy_user_to_tcb(const char *user, char *linebuf, FILE *inf)
 	}
 
 	free(tcbname);
-	asprintf(&tcbname, TCB_FMT, user);
-	if (!tcbname) {
+	if (asprintf(&tcbname, TCB_FMT, user) < 0) {
 		perror("asprintf");
 		goto out;
 	}

@@ -157,9 +157,8 @@ PAM_EXTERN int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags,
 		_log_err(LOG_INFO,
 		    "Password for %s will expire in %d day%s",
 		    user, daysleft, daysleft == 1 ? "" : "s");
-		asprintf(&message, MESSAGE_WARN_EXPIRE,
-		    daysleft, daysleft == 1 ? "" : "s");
-		if (message) {
+		if (asprintf(&message, MESSAGE_WARN_EXPIRE,
+		    daysleft, daysleft == 1 ? "" : "s") >= 0) {
 			_make_remark(pamh, PAM_TEXT_INFO, message);
 			free(message);
 		}

@@ -195,8 +195,7 @@ static int update_shadow(const char *forwho, const char *towhat,
 
 	D(("called"));
 
-	asprintf(&tmpfile, "%s%s", file, TMP_SUFFIX);
-	if (!tmpfile)
+	if (asprintf(&tmpfile, "%s%s", file, TMP_SUFFIX) < 0)
 		return PAM_AUTHTOK_ERR;
 
 	fd = open(tmpfile, O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR);
@@ -261,8 +260,9 @@ static int update_shadow(const char *forwho, const char *towhat,
 			if (fieldnum == 2 && thisline) {
 				char *timestr;
 
-				asprintf(&timestr, "%d:",
-				    (int)(time(NULL) / (60 * 60 * 24)));
+				if (asprintf(&timestr, "%d:",
+				    (int)(time(NULL) / (60 * 60 * 24))) < 0)
+					timestr = NULL;
 				if (!timestr ||
 				    fputs(timestr, newf) == EOF) {
 					if (timestr)
@@ -374,7 +374,8 @@ static char *get_pwfile(const char *forwho)
 {
 	if (pam_unix_param.write_to == WRITE_TCB) {
 		char *file;
-		asprintf(&file, TCB_FMT, forwho);
+		if (asprintf(&file, TCB_FMT, forwho) < 0)
+			file = NULL;
 		return file;
 	}
 	if (pam_unix_param.write_to == WRITE_SHADOW)
@@ -527,8 +528,7 @@ static int unix_prelim(pam_handle_t *pamh, const char *user)
 	if (_unix_blankpasswd(user))
 		goto out;
 
-	asprintf(&greeting, MESSAGE_CHANGING, user);
-	if (!greeting) {
+	if (asprintf(&greeting, MESSAGE_CHANGING, user) < 0) {
 		_log_err(LOG_CRIT, "Out of memory");
 		return PAM_BUF_ERR;
 	}

@@ -74,8 +74,7 @@ int lckpwdf_tcb(const char *file)
 	if (lockfd != -1)
 		return -1;
 
-	asprintf(&lockfile, "%s%s", file, LOCK_SUFFIX);
-	if (!lockfile)
+	if (asprintf(&lockfile, "%s%s", file, LOCK_SUFFIX) < 0)
 		return -1;
 	lockfd = open(lockfile,
 	    O_CREAT | O_WRONLY | O_NOCTTY | O_NONBLOCK | O_NOFOLLOW, 0600);
@@ -198,8 +197,7 @@ int tcb_drop_priv_r(const char *name, struct tcb_privs *p)
 
 	shadow_gid = st.st_gid;
 
-	asprintf(&dir, "%s/%s", TCB_DIR, name);
-	if (!dir)
+	if (asprintf(&dir, "%s/%s", TCB_DIR, name) < 0)
 		return -1;
 	if (stat(dir, &st)) {
 		free(dir);

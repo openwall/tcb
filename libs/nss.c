@@ -63,8 +63,7 @@ int _nss_tcb_getspnam_r(const char *name, struct spwd *__result_buf,
 	char *file;
 	int retval, saved_errno;
 
-	asprintf(&file, TCB_FMT, name);
-	if (!file)
+	if (asprintf(&file, TCB_FMT, name) < 0)
 		return NSS_STATUS_TRYAGAIN;
 	f = tcb_safe_open(file, name);
 	free(file);
