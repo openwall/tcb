@@ -1,14 +1,14 @@
-# $Id$
+# $Id: tcb.spec,v 1.7 2001/12/09 02:00:34 solar Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
 Version: 0.9.7
-Release: 1owl
+Release: owl1
 License: BSD or GPL
 Group: System Environment/Base
 Source: %{name}-%{version}.tar.gz
 PreReq: pam >= 0.75-12owl, /sbin/chkpwd.d
-BuildRequires: glibc-devel >= 2.1.3-13owl, pam-devel
+BuildRequires: glibc-crypt_blowfish, pam-devel
 BuildRoot: /override/%{name}-%{version}
 
 %description
@@ -78,6 +78,9 @@ grep -q '^shadow:[^:]*:42:' /etc/group && \
 /usr/lib/libtcb.a
 
 %changelog
+* Mon Feb 04 2002 Solar Designer <solar@owl.openwall.com>
+- Enforce our new spec file conventions.
+
 * Sun Dec 09 2001 Solar Designer <solar@owl.openwall.com>
 - Various minor fixes from Dmitry V. Levin of ALT Linux.
 - A GNU-style ChangeLog will now be maintained.
