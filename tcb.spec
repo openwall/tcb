@@ -1,13 +1,13 @@
-# $Id: tcb.spec,v 1.9 2002/02/04 10:10:15 solar Exp $
+# $Id: tcb.spec,v 1.10 2002/02/07 18:07:47 solar Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
-Version: 0.9.7
+Version: 0.9.7.1
 Release: owl1
 License: BSD or GPL
 Group: System Environment/Base
 Source: %{name}-%{version}.tar.gz
-PreReq: /sbin/ldconfig, /sbin/chkpwd.d
+PreReq: /sbin/ldconfig, %_libexecdir/chkpwd
 BuildRequires: glibc-crypt_blowfish, pam-devel
 BuildRoot: /override/%{name}-%{version}
 
@@ -47,8 +47,12 @@ rm -rf $RPM_BUILD_ROOT
 
 %triggerin -- shadow-utils
 grep -q '^shadow:[^:]*:42:' /etc/group && \
-	chgrp shadow /sbin/chkpwd.d/tcb_chkpwd && \
-	chmod 2711 /sbin/chkpwd.d/tcb_chkpwd
+	chgrp shadow %_libexecdir/chkpwd/tcb_chkpwd && \
+	chmod 2711 %_libexecdir/chkpwd/tcb_chkpwd
+
+# This is needed for upgrades from older versions of the package.
+%triggerpostun -- tcb < 0.9.7.1
+rmdir /sbin/chkpwd.d
 
 %files
 %defattr(-,root,root)
@@ -63,8 +67,7 @@ grep -q '^shadow:[^:]*:42:' /etc/group && \
 /lib/security/pam_unix_session.so
 /sbin/tcb_convert
 /sbin/tcb_unconvert
-%attr(0700,root,root) /sbin/chkpwd.d/tcb_chkpwd
-/sbin/tcb_chkpwd
+%attr(0700,root,root) %_libexecdir/chkpwd/tcb_chkpwd
 %_mandir/man5/tcb.5.*
 %_mandir/man5/pam_tcb.5.*
 %_mandir/man5/pam_unix.5.*
@@ -78,6 +81,9 @@ grep -q '^shadow:[^:]*:42:' /etc/group && \
 /lib/libtcb.so
 
 %changelog
+* Sun May 19 2002 Solar Designer <solar@owl.openwall.com>
+- Moved the chkpwd directory to /usr/libexec.
+
 * Mon Feb 04 2002 Solar Designer <solar@owl.openwall.com>
 - Enforce our new spec file conventions.
 

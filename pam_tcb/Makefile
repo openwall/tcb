@@ -17,7 +17,8 @@ $(PAM_TCB): $(LIBOBJ)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 support.o: support.c
-	$(CC) $(CFLAGS) -DCHKPWD_HELPER=\"$(SYSBIN)/tcb_chkpwd\" -c $< -o $@
+	$(CC) $(CFLAGS) -DCHKPWD_HELPER=\"$(LIBEXECDIR)/chkpwd/tcb_chkpwd\" \
+		-c $< -o $@
 
 install-non-root: install
 

@@ -70,7 +70,7 @@ This design has the following benefits:
 needs to be SGID to group shadow only, not SUID to root.
 .BR chage (1)
 and
-.IR /sbin/tcb_chkpwd
+.IR /usr/libexec/chkpwd/tcb_chkpwd
 are SGID to group shadow too, which with the tcb scheme means they only
 possess the privilege to access the user's own shadow file entry.
 A bug in one of these utilities may at most give a malicious user
