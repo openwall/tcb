@@ -28,11 +28,6 @@ IO_LOOP(write_loop, write, const)
 
 #include "support.h"
 
-
-/* XXX: should determine this from the module's options (yes, they would
- * need to be passed for auth, too). */
-#define AUTH_DUMMY_SALT			"xx"
-
 static void data_cleanup(pam_handle_t *pamh, void *data, int error_status)
 {
 	_pam_delete(data);
@@ -535,39 +530,44 @@ out:
 static int check_crypt(const char *pass, const char *stored_hash)
 {
 	const char *salt;
-	char *hash;
+	char *hash, *fake_salt;
+	char input[16];
 	int retval;
 
-	if (!*stored_hash) {
-		/* the stored password is null */
-		if (on(UNIX__NULLOK)) { /* this means we've succeeded */
-			D(("user has empty password - access granted"));
-			retval = PAM_SUCCESS;
-		} else {
-			D(("user has empty password - access denied"));
-			retval = PAM_AUTH_ERR;
-		}
-	} else {
-		salt = stored_hash;
-		if (*salt == '*' || *salt == '!')
-			salt = AUTH_DUMMY_SALT;
-
-		hash = crypt_wrapper(pass, salt);
-		pass = NULL; /* no longer needed here */
-
-		/* the moment of truth -- do we agree with the password? */
-		D(("comparing state of hash[%s] and stored_hash[%s]",
-		    hash, stored_hash));
-		if (!hash)
-			retval = PAM_BUF_ERR;
-		else if (strcmp(hash, stored_hash) == 0)
-			retval = PAM_SUCCESS;
-		else
-			retval = PAM_AUTH_ERR;
-
-		if (hash)
-			_pam_delete(hash);
+	if (!*stored_hash && on(UNIX__NULLOK)) {
+		D(("user has empty password - access granted"));
+		return PAM_SUCCESS;
 	}
+
+	/* This exists because of timing attacks. */
+	memset(input, 0x55, sizeof(input));
+	fake_salt = crypt_gensalt_ra(pam_unix_param.crypt_prefix,
+	    pam_unix_param.count, input, sizeof(input));
+
+	if (!fake_salt)
+		return PAM_BUF_ERR;
+
+	salt = stored_hash;
+	if (*salt == '\0' || *salt == '*' || *salt == '!')
+		salt = fake_salt;
+
+	hash = crypt_wrapper(pass, salt);
+	pass = NULL; /* no longer needed here */
+
+	/* the moment of truth -- do we agree with the password? */
+	D(("comparing state of hash[%s] and stored_hash[%s]",
+	    hash, stored_hash));
+	if (!hash)
+		retval = PAM_BUF_ERR;
+	else if (strcmp(hash, stored_hash) == 0 && salt != fake_salt)
+		retval = PAM_SUCCESS;
+	else
+		retval = PAM_AUTH_ERR;
+
+	if (hash)
+		_pam_delete(hash);
+	if (fake_salt)
+		_pam_delete(fake_salt);
 
 	return retval;
 }
@@ -589,13 +589,13 @@ static int unix_verify_password_plain(struct unix_verify_password_param *arg)
 	pw = getpwnam(user);
 	endpwent();
 	if (!pw) {
-		/* this exists because of timing attacks */
+		/* This exists because of timing attacks. */
 		faking = 1;
 		pw = &fake_pw;
 		salt = unix_getsalt(pw);
 		if (salt)
 			_pam_delete(salt);
-		salt = strdup(AUTH_DUMMY_SALT);
+		salt = strdup("*");
 		if (!salt) {
 			retval = PAM_BUF_ERR;
 			goto out;

@@ -1,12 +1,13 @@
-# $Id: tcb.spec,v 1.19 2002/10/29 23:28:33 solar Exp $
+# $Id: tcb.spec,v 1.20 2002/10/31 16:01:10 solar Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
-Version: 0.9.8.3
+Version: 0.9.8.4
 Release: owl1
 License: BSD or GPL
 Group: System Environment/Base
-Source: %{name}-%{version}.tar.gz
+URL: http://www.openwall.com/tcb/
+Source: ftp://ftp.openwall.com/pub/projects/tcb/%{name}-%{version}.tar.gz
 PreReq: /sbin/ldconfig, %_libexecdir/chkpwd
 BuildRequires: glibc-crypt_blowfish, pam-devel
 BuildRoot: /override/%{name}-%{version}
@@ -81,6 +82,9 @@ rmdir /sbin/chkpwd.d
 /usr/lib/libtcb.so
 
 %changelog
+* Wed Apr 16 2003 Dmitry V. Levin <ldv@owl.openwall.com> 0.9.8.4-owl1
+- In pam_tcb, implemented proper fake salt creation to avoid a timing attack.
+
 * Thu Oct 31 2002 Solar Designer <solar@owl.openwall.com>
 - Optimized unix_verify_password() a bit, from Dmitry V. Levin of ALT Linux.
 

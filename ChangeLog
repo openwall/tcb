@@ -1,3 +1,10 @@
+2003-04-16  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* pam_tcb/support.c: Implemented proper fake salt creation
+	to avoid a timing attack.
+
+	* tcb.spec: 0.9.8.4.
+
 2002-10-31  Solar Designer  <solar@owl.openwall.com>
 
 	* progs/tcb_chkpwd.c: Optimized unix_verify_password() a bit,
