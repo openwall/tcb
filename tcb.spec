@@ -1,8 +1,8 @@
-# $Id: tcb.spec,v 1.10 2002/02/07 18:07:47 solar Exp $
+# $Id: tcb.spec,v 1.11 2002/05/19 03:54:50 solar Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
-Version: 0.9.7.1
+Version: 0.9.7.2
 Release: owl1
 License: BSD or GPL
 Group: System Environment/Base

@@ -1,3 +1,13 @@
+2002-05-19  Solar Designer  <solar@owl.openwall.com>
+
+	* Make.defs: Renamed SYSBIN to SBINDIR, define LIBEXECDIR.
+
+	* tcb.spec, progs/Makefile, pam_tcb/Makefile,
+	pam_tcb/pam_tcb.5, misc/tcb.5: Moved the chkpwd directory to
+	/usr/libexec.
+
+	* misc/Makefile: Deal with SBINDIR and LIBEXECDIR.
+
 2001-11-28  Dmitry V. Levin  <ldv@alt-linux.org>
 
 	* pam_tcb/support.c: Replaced signal call with sigaction call.
