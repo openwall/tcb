@@ -1,9 +1,9 @@
-# $Id: tcb.spec,v 1.4 2001/11/16 03:38:55 solar Exp $
+# $Id$
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
-Version: 0.9.5
-Release: 2owl
+Version: 0.9.6
+Release: 1owl
 License: BSD or GPL
 Group: System Environment/Base
 Source: %{name}-%{version}.tar.gz
@@ -78,6 +78,11 @@ grep -q '^shadow:[^:]*:42:' /etc/group && \
 /usr/lib/libtcb.a
 
 %changelog
+* Sun Nov 18 2001 Solar Designer <solar@owl.openwall.com>
+- Patches from Nergal to make delays on failure work with the "fork"
+option and to not produce a warning when su'ing to pseudo-users from
+root.
+
 * Fri Nov 16 2001 Solar Designer <solar@owl.openwall.com>
 - Don't include the /sbin/chkpwd.d directory in this package as it's
 provided by our pam package.
