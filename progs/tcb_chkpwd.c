@@ -20,7 +20,7 @@
 IO_LOOP(read_loop, read,)
 IO_LOOP(write_loop, write, const)
 
-#define MAX_PASSWORD_LENGTH		255
+#define MAX_DATA_LENGTH		255
 
 #define AUTH_PASSED			TCB_MAGIC
 #define AUTH_FAILED			1
@@ -36,6 +36,8 @@ static int unix_verify_password(const char *user, const char *pass, int nullok)
 	endpwent();
 
 	stored_hash = NULL;
+	if (pw && getuid() != pw->pw_uid)
+		return AUTH_FAILED;
 	if (pw) {
 		if (!strcmp(pw->pw_passwd, "x")) {
 			spw = getspnam(user);
@@ -78,20 +80,21 @@ static int unix_verify_password(const char *user, const char *pass, int nullok)
 	return retval;
 }
 
-static char *getuidname(uid_t uid)
+int is_two_strings(char * data, int len)
 {
-	struct passwd *pw;
-
-	pw = getpwuid(uid);
-	return pw ? strdup(pw->pw_name) : NULL;
+	data[len] = 0;
+	if (strlen(data) >= len - 1)
+		return 0;
+	else
+		return 1;
 }
+	
 
 int main(void)
 {
 	char option[8];
-	char pass[MAX_PASSWORD_LENGTH + 1];
-	char *user;
-	int passlen, nullok, retval;
+	char userandpass[MAX_DATA_LENGTH + 1];
+	int datalen, nullok, retval;
 
 	openlog("tcb_chkpwd", LOG_CONS | LOG_PID, LOG_AUTH);
 
@@ -99,8 +102,6 @@ int main(void)
 		syslog(LOG_NOTICE, "inappropriate use by UID %d", getuid());
 		return 1;
 	}
-
-	user = getuidname(getuid());
 
 	/* read the nullok/nonull option */
 	memset(option, 0, sizeof(option));
@@ -113,18 +114,19 @@ int main(void)
 
 	retval = AUTH_FAILED;
 
-	/* read the password from stdin (a pipe from the PAM module) */
-	passlen = read_loop(STDIN_FILENO, pass, MAX_PASSWORD_LENGTH);
-	if (passlen < 0) {
-		syslog(LOG_DEBUG, "no password supplied");
-	} else if (passlen >= MAX_PASSWORD_LENGTH) {
-		syslog(LOG_DEBUG, "password too long");
-	} else {
-		pass[passlen] = '\0';
-		retval = unix_verify_password(user, pass, nullok);
-	}
+	/* read the user/password from stdin (a pipe from the PAM module) */
+	datalen = read_loop(STDIN_FILENO, userandpass, MAX_DATA_LENGTH);
+	if (datalen < 0)
+		syslog(LOG_DEBUG, "no user/password supplied");
+	else if (datalen >= MAX_DATA_LENGTH)
+		syslog(LOG_DEBUG, "user/password too long");
+	else if (!is_two_strings(userandpass, datalen)) 
+		syslog(LOG_DEBUG, "malformed data from parent");
+	else
+		retval = unix_verify_password(userandpass, 
+			userandpass + strlen(userandpass) + 1, nullok);
 
-	memset(pass, 0, sizeof(pass));
+	memset(userandpass, 0, sizeof(userandpass));
 
 	/* return pass or fail */
 	if (write_loop(STDOUT_FILENO, (char *)&retval, sizeof(retval)) ==

@@ -1,8 +1,8 @@
-# $Id: tcb.spec,v 1.14 2002/08/04 03:27:35 solar Exp $
+# $Id: tcb.spec,v 1.15 2002/08/19 16:13:11 solar Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
-Version: 0.9.7.5
+Version: 0.9.8
 Release: owl1
 License: BSD or GPL
 Group: System Environment/Base
@@ -33,7 +33,7 @@ building tcb-aware applications.
 %setup -q
 
 %build
-CFLAGS="$RPM_OPT_FLAGS" make
+CFLAGS="$RPM_OPT_FLAGS -DENABLE_SETFSUGID" make
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -81,6 +81,10 @@ rmdir /sbin/chkpwd.d
 /usr/lib/libtcb.so
 
 %changelog
+* Mon Aug 19 2002 Rafal Wojtczuk <nergal@owl.openwall.com>
+- Merged enhancements which remove 32K users limit
+- Added ENABLE_SETFSUGID
+
 * Mon Aug 19 2002 Solar Designer <solar@owl.openwall.com>
 - Moved libtcb.so symlink to /usr/lib (patch from Dmitry V. Levin).
 

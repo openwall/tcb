@@ -139,6 +139,41 @@ int ulckpwdf_tcb(void)
 
 static struct tcb_privs glob_privs = { {0}, 0, -1, -1, 0 };
 
+#ifdef ENABLE_SETFSUGID
+#include <sys/fsuid.h>
+/* 
+Two setfsuid in a row - stupid, but how the hell am I supposed to check
+whether setfsuid succeeded ?
+*/ 
+int ch_uid(uid_t uid, uid_t *save)
+{
+	uid_t tmp = setfsuid(uid); 
+	if (save)
+		*save = tmp;
+	return setfsuid(uid) == uid;
+}
+int ch_gid(gid_t gid, gid_t *save)
+{
+	gid_t tmp = setfsgid(gid);
+	if (save)
+		*save = tmp; 
+	return setfsgid(gid) == gid;
+}
+#else
+int ch_uid(uid_t uid, uid_t *save)
+{
+	if (save)
+		*save = geteuid();
+	return setreuid(-1, uid) != -1;
+}
+int ch_gid(gid_t gid, gid_t *save)
+{
+	if (save)
+		*save = getegid();
+	return setregid(-1, gid) != -1;
+}
+#endif
+
 #define PRIV_MAGIC			0x1004000a
 #define PRIV_MAGIC_NONROOT		0xdead000a
 
@@ -180,11 +215,9 @@ int tcb_drop_priv_r(const char *name, struct tcb_privs *p)
 
 	if (setgroups(0, NULL) == -1)
 		return -1;
-	p->old_egid = getegid();
-	if (setregid(-1, shadow_gid) == -1)
+	if (!ch_gid(shadow_gid, &p->old_gid))
 		return -1;
-	p->old_euid = geteuid();
-	if (setreuid(-1, st.st_uid) == -1)
+	if (!ch_uid(st.st_uid, &p->old_uid))
 		return -1;
 
 	p->is_dropped = PRIV_MAGIC;
@@ -205,9 +238,9 @@ int tcb_gain_priv_r(struct tcb_privs *p)
 		return -1;
 	}
 
-	if (setreuid(-1, p->old_euid) == -1)
+	if (!ch_uid(p->old_uid, NULL))
 		return -1;
-	if (setregid(-1, p->old_egid) == -1)
+	if (!ch_gid(p->old_gid, NULL))
 		return -1;
 	if (setgroups(p->saved_groups, p->grpbuf) == -1)
 		return -1;

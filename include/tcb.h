@@ -13,8 +13,8 @@
 struct tcb_privs {
 	gid_t grpbuf[TCB_NGROUPS];
 	int saved_groups;
-	gid_t old_egid;
-	uid_t old_euid;
+	gid_t old_gid;
+	uid_t old_uid;
 	int is_dropped;
 };
 

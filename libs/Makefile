@@ -1,7 +1,7 @@
 include ../Make.defs
 
 LIBTCB = libtcb.so.0
-LIBTCB_LONG = $(LIBTCB).9.7
+LIBTCB_LONG = $(LIBTCB).9.8
 LIBNSS = libnss_tcb.so.2
 LIBTCB_A = libtcb.a
 

@@ -122,7 +122,7 @@ int _nss_tcb_getspent_r(struct spwd *__result_buf,
 			return NSS_STATUS_NOTFOUND;
 		}
 	} while (!strcmp(result->d_name, ".") ||
-	    !strcmp(result->d_name, ".."));
+	    !strcmp(result->d_name, "..") || result->d_name[0] == ':');
 
 	retval = _nss_tcb_getspnam_r(result->d_name, __result_buf, __buffer,
 	    __buflen, __result);

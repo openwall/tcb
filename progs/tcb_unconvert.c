@@ -45,7 +45,7 @@ static int copy_user_from_tcb(const char *user, FILE *outf)
 	}
 	fd = open(tcbname, O_RDONLY | O_NOCTTY | O_NONBLOCK | O_NOFOLLOW);
 	if (fd < 0) {
-		perror("open");
+		fprintf(stderr,"open %s: %s\n", tcbname, strerror(errno));
 		tcb_gain_priv();
 		goto out_free;
 	}
@@ -167,7 +167,7 @@ static int copy_from_tcb(void)
 	errno = 0;
 	while ((entry = readdir(tcbdir))) {
 		if (!strcmp(entry->d_name, ".") ||
-		    !strcmp(entry->d_name, ".."))
+		    !strcmp(entry->d_name, "..") || entry->d_name[0] == ':')
 			continue;
 		if (copy_user_from_tcb(entry->d_name, outf))
 			goto out_fclose;
@@ -192,7 +192,7 @@ static int copy_from_tcb(void)
 	}
 
 	if (rename(SHADOW_TMP_FILE, SHADOW_FILE)) {
-		perror("rename");
+		perror("rename " SHADOW_TMP_FILE);
 		goto out_unlink;
 	}
 
@@ -205,7 +205,7 @@ out_fclose:
 
 out_unlink:
 	if (unlink(SHADOW_TMP_FILE))
-		perror("unlink");
+		perror("unlink " SHADOW_TMP_FILE);
 
 out_closedir:
 	if (closedir(tcbdir)) {

@@ -425,10 +425,11 @@ int _unix_blankpasswd(const char *user)
  */
 
 static int unix_run_helper_binary(const pam_handle_t *pamh,
-    const char *pass)
+    const char *user, const char *pass)
 {
 	int retval = PAM_AUTH_ERR, child, fail = 0, status, fds[2], retpipe[2];
-	sighandler_t sig;
+	sighandler_t sigchld, sigpipe;
+	int len;
 	char *argv[] = {CHKPWD_HELPER, NULL};
 	char *envp[] = {NULL};
 
@@ -447,8 +448,9 @@ static int unix_run_helper_binary(const pam_handle_t *pamh,
 		goto out_pipe;
 	}
 
-	sig = signal(SIGCHLD, SIG_DFL);
-
+	sigchld = signal(SIGCHLD, SIG_DFL);
+	sigpipe = signal(SIGPIPE, SIG_IGN);
+	
 	switch ((child = fork())) {
 	case -1:
 		D(("fork failed"));
@@ -485,17 +487,17 @@ static int unix_run_helper_binary(const pam_handle_t *pamh,
 			if (write_loop(fds[1], "nonull\0\0", 8) != 8)
 				fail = 1;
 		}
-		if (pass) {
-			/* send the password to the child */
-			int len = strlen(pass) + 1;
+		if (!pass)
+			pass = "";
+		len = strlen(user) + 1;
+		if (write_loop(fds[1], user, len) != len)
+			fail = 1;
+		else {
+			len = strlen(pass) + 1;
 			if (write_loop(fds[1], pass, len) != len)
 				fail = 1;
-			pass = NULL;
-		} else {
-			/* blank password */
-			if (write_loop(fds[1], "", 1) != 1)
-				fail = 1;
-		}
+		}		
+		pass = NULL; 
 		close(fds[1]);
 		/* wait for helper to complete */
 		if (waitpid(child, &status, 0) != child) {
@@ -518,7 +520,8 @@ static int unix_run_helper_binary(const pam_handle_t *pamh,
 out_signal:
 	close(retpipe[0]);
 	close(retpipe[1]);
-	signal(SIGCHLD, sig);
+	signal(SIGPIPE, sigpipe);
+	signal(SIGCHLD, sigchld);
 
 out_pipe:
 	close(fds[0]);
@@ -609,7 +612,7 @@ static int unix_verify_password_plain(struct unix_verify_password_param *arg)
 		if (uid == geteuid() && uid == pw->pw_uid && uid != 0) {
 			/* We are not root perhaps this is the reason? */
 			D(("running helper binary"));
-			retval = unix_run_helper_binary(pamh, pass);
+			retval = unix_run_helper_binary(pamh, user, pass);
 		} else {
 			D(("user's record unavailable"));
 			_log_err(LOG_ALERT,
