@@ -1,14 +1,14 @@
-# $Id$
+# $Id: tcb.spec,v 1.2 2001/11/15 04:45:06 solar Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
 Version: 0.9.5
-Release: 1owl
-License: GPL or BSD
+Release: 2owl
+License: BSD or GPL
 Group: System Environment/Base
 Source: %{name}-%{version}.tar.gz
+PreReq: pam >= 0.75-12owl, /sbin/chkpwd.d
 BuildRequires: glibc-devel >= 2.1.3-13owl, pam-devel
-PreReq: pam >= 0.75-12owl
 BuildRoot: /override/%{name}-%{version}
 
 %description
@@ -42,6 +42,11 @@ make install-non-root install-pam_unix FAKEROOT=$RPM_BUILD_ROOT MANDIR=%_mandir
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%triggerin -- shadow-utils
+grep -q '^shadow:[^:]*:42:' /etc/group && \
+	chgrp shadow /sbin/chkpwd.d/tcb_chkpwd && \
+	chmod 2711 /sbin/chkpwd.d/tcb_chkpwd
+
 %post -p /sbin/ldconfig
 %postun -p /sbin/ldconfig
 
@@ -59,8 +64,7 @@ rm -rf $RPM_BUILD_ROOT
 /lib/security/pam_unix_session.so
 /sbin/tcb_convert
 /sbin/tcb_unconvert
-%attr(0710,root,chkpwd) %dir /sbin/chkpwd.d
-%attr(02711,root,shadow) /sbin/chkpwd.d/tcb_chkpwd
+%attr(0700,root,root) /sbin/chkpwd.d/tcb_chkpwd
 /sbin/tcb_chkpwd
 %_mandir/man5/tcb.5.*
 %_mandir/man5/pam_tcb.5.*
@@ -74,6 +78,14 @@ rm -rf $RPM_BUILD_ROOT
 /usr/lib/libtcb.a
 
 %changelog
+* Fri Nov 16 2001 Solar Designer <solar@owl.openwall.com>
+- Don't include the /sbin/chkpwd.d directory in this package as it's
+provided by our pam package.
+- Use a trigger on shadow-utils for possibly creating and making use of
+group shadow.  This makes no difference on Owl as either the group is
+provided by owl-etc (on new installs) or groupadd is already available
+when this package is installed, but may be useful on hybrid systems.
+
 * Thu Nov 15 2001 Solar Designer <solar@owl.openwall.com>
 - Provide compatibility symlinks and a man page for pam_unix.
 - tcb_convert(8) man page fixes from Nergal.
