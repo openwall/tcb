@@ -81,10 +81,10 @@ static int unix_verify_password(const char *user, const char *pass, int nullok)
 	return retval;
 }
 
-static int is_two_strings(char *data, int len)
+static int is_two_strings(char *data, unsigned int len)
 {
 	data[len] = 0;
-	return (strlen(data) < len - 1);
+	return (1 + strlen(data) < len);
 }
 
 int main(void)

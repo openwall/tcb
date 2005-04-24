@@ -160,7 +160,7 @@ typedef int (*cb_func) (const void *);
 extern int _unix_fork(cb_func, const void *);
 
 extern void _log_err(int err, const char *format, ...)
-#ifdef __GNUC__
+#if defined(__GNUC__) && __GNUC__ >= 2 && (__GNUC__ > 2 || __GNUC_MINOR__ >= 5) && !__STRICT_ANSI__
 	__attribute__ ((format(printf, 2, 3)));
 #else
 	;

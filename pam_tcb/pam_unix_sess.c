@@ -15,6 +15,7 @@
 PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags,
     int argc, const char **argv)
 {
+	const void *item;
 	const char *user, *service;
 	int retval;
 
@@ -23,14 +24,16 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags,
 	if (!_set_ctrl(flags, argc, argv))
 		return PAM_ABORT;
 
-	retval = pam_get_item(pamh, PAM_USER, (const void **)&user);
+	retval = pam_get_item(pamh, PAM_USER, &item);
+	user = item;
 	if (retval != PAM_SUCCESS || !user) {
 		_log_err(LOG_ALERT, "Unable to identify user");
 		return PAM_SESSION_ERR;	/* How did we get authenticated with
 					   no username?! */
 	}
 
-	retval = pam_get_item(pamh, PAM_SERVICE, (const void **)&service);
+	retval = pam_get_item(pamh, PAM_SERVICE, &item);
+	service = item;
 	if (retval != PAM_SUCCESS || !service) {
 		_log_err(LOG_ALERT, "Unable to identify service");
 		return PAM_SESSION_ERR;
@@ -48,6 +51,7 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags,
 PAM_EXTERN int pam_sm_close_session(pam_handle_t *pamh, int flags,
     int argc, const char **argv)
 {
+	const void *item;
 	const char *user, *service;
 	int retval;
 
@@ -56,14 +60,16 @@ PAM_EXTERN int pam_sm_close_session(pam_handle_t *pamh, int flags,
 	if (!_set_ctrl(flags, argc, argv))
 		return PAM_ABORT;
 
-	retval = pam_get_item(pamh, PAM_USER, (const void **)&user);
+	retval = pam_get_item(pamh, PAM_USER, &item);
+	user = item;
 	if (retval != PAM_SUCCESS || !user) {
 		_log_err(LOG_ALERT, "Unable to identify user");
 		return PAM_SESSION_ERR;	/* How did we get authenticated with
 					   no username?! */
 	}
 
-	retval = pam_get_item(pamh, PAM_SERVICE, (const void **)&service);
+	retval = pam_get_item(pamh, PAM_SERVICE, &item);
+	service = item;
 	if (retval != PAM_SUCCESS || !service) {
 		_log_err(LOG_ALERT, "Unable to identify service");
 		return PAM_SESSION_ERR;

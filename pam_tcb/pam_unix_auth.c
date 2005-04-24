@@ -8,12 +8,14 @@
 #endif
 #include <security/pam_modules.h>
 
+#include "attribute.h"
 #include "support.h"
 
 #define DATA_AUTHTOK			"-UN*X-PASS"
 #define DATA_AUTH_RETVAL		"-UN*X-AUTH-RETVAL"
 
-static void retval_cleanup(pam_handle_t * pamh, void *data, int error_status)
+static void retval_cleanup(unused pam_handle_t * pamh, void *data,
+    unused int error_status)
 {
 	free(data);
 }
@@ -116,9 +118,11 @@ out_save_retval:
 	    || *pass || off(UNIX_NOLOG_BLANK)
 #endif
 	    ) {
-		if (pam_get_item(pamh, PAM_SERVICE,
-		    (const void **)&service) != PAM_SUCCESS)
-			service = NULL;
+		const void *item;
+
+		if (pam_get_item(pamh, PAM_SERVICE, &item) != PAM_SUCCESS)
+			item = NULL;
+		service = item;
 		_log_err(retval == PAM_SUCCESS ? LOG_INFO : LOG_NOTICE,
 		    "%s: Authentication %s for %s from %s(uid=%u)",
 		    service ?: "UNKNOWN SERVICE",
@@ -140,7 +144,8 @@ out_save_retval:
 PAM_EXTERN int pam_sm_setcred(pam_handle_t *pamh, int flags,
     int argc, const char **argv)
 {
-	int retval = PAM_SUCCESS, *retval_data = NULL;
+	int retval = PAM_SUCCESS;
+	const int *retval_data = NULL;
 
 	D(("called"));
 
@@ -148,9 +153,11 @@ PAM_EXTERN int pam_sm_setcred(pam_handle_t *pamh, int flags,
 		return PAM_ABORT;
 
 	if (on(UNIX_LIKE_AUTH)) {
+		const void *item;
+
 		D(("recovering return code from auth call"));
-		pam_get_data(pamh, DATA_AUTH_RETVAL,
-		    (const void **)&retval_data);
+		pam_get_data(pamh, DATA_AUTH_RETVAL, &item);
+		retval_data = item;
 		pam_set_data(pamh, DATA_AUTH_RETVAL, NULL, NULL);
 		if (retval_data) {
 			retval = *retval_data;

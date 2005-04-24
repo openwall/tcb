@@ -80,6 +80,7 @@ static int acct_shadow(const char *user)
 PAM_EXTERN int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags,
     int argc, const char **argv)
 {
+	const void *item;
 	const char *user;
 	int retval, daysleft = 0;
 	struct passwd *pw;
@@ -91,7 +92,8 @@ PAM_EXTERN int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags,
 		return PAM_ABORT;
 	set(UNIX_SHADOW);
 
-	retval = pam_get_item(pamh, PAM_USER, (const void **)&user);
+	retval = pam_get_item(pamh, PAM_USER, &item);
+	user = item;
 	D(("user = `%s'", user));
 	if (retval != PAM_SUCCESS || !user) {
 		_log_err(LOG_ALERT, "Unable to identify user");

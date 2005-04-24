@@ -22,6 +22,7 @@
 
 #include "tcb.h"
 
+#include "attribute.h"
 #include "support.h"
 #include "yppasswd.h"
 
@@ -306,8 +307,8 @@ static int update_shadow(const char *forwho, const char *towhat,
 	return PAM_SUCCESS;
 }
 
-static int update_nis(const char *forwho, char *fromwhat, char *towhat,
-    struct passwd *pw)
+static int update_nis(unused const char *forwho, const char *fromwhat,
+    char *towhat, struct passwd *pw)
 {
 	struct timeval timeout;
 	struct yppasswd yppw;
@@ -331,7 +332,7 @@ static int update_nis(const char *forwho, char *fromwhat, char *towhat,
 	yppw.newpw.pw_gecos = pw->pw_gecos;
 	yppw.newpw.pw_dir = pw->pw_dir;
 	yppw.newpw.pw_shell = pw->pw_shell;
-	yppw.oldpass = fromwhat;
+	yppw.oldpass = (char *)fromwhat;
 	yppw.newpw.pw_passwd = towhat;
 
 	D(("set password %s for %s", yppw.newpw.pw_passwd, forwho));
@@ -383,7 +384,7 @@ static char *get_pwfile(const char *forwho)
 	return strdup(PASSWD_FILE);
 }
 
-static int do_setpass(const char *forwho, char *fromwhat, char *towhat)
+static int do_setpass(const char *forwho, const char *fromwhat, char *towhat)
 {
 	struct passwd *pw = NULL;
 	char *file;
@@ -519,8 +520,8 @@ static int unix_prelim(pam_handle_t *pamh, const char *user)
 {
 	int lctrl[OPT_SIZE];
 	char *greeting;
-	char *oldpass;
-	const char *service;
+	const void *item;
+	const char *oldpass, *service;
 	int retval = PAM_SUCCESS;
 
 	D(("called"));
@@ -538,7 +539,7 @@ static int unix_prelim(pam_handle_t *pamh, const char *user)
 		set(UNIX__OLD_PASSWD);
 		retval = _unix_read_password(pamh, greeting,
 		    PROMPT_OLDPASS, NULL,
-		    DATA_OLD_AUTHTOK, (const char **)&oldpass);
+		    DATA_OLD_AUTHTOK, &oldpass);
 		free(greeting);
 		memcpy(pam_unix_param.ctrl, lctrl,
 		    sizeof(pam_unix_param.ctrl));
@@ -584,9 +585,9 @@ out:
 	if (on(UNIX__IAMROOT))
 		return retval;
 
-	if (pam_get_item(pamh, PAM_SERVICE,
-	    (const void **)&service) != PAM_SUCCESS)
-		service = NULL;
+	if (pam_get_item(pamh, PAM_SERVICE, &item) != PAM_SUCCESS)
+		item = NULL;
+	service = item;
 	_log_err(retval == PAM_SUCCESS ? LOG_INFO : LOG_NOTICE,
 	    "%s: Authentication %s for %s from %s(uid=%u)"
 	    ", for password management",
@@ -606,8 +607,8 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 	int retval, retry;
 	char oldprefix[HASH_PREFIX_SIZE];
 	/* <DO NOT free() THESE> */
-	const char *user;
-	char *oldpass, *newpass;
+	const void *item;
+	const char *user, *oldpass, *newpass;
 	/* </DO NOT free() THESE> */
 	char *newhash;
 	const char *service;
@@ -665,16 +666,15 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 	 * previous call to this function).
 	 */
 	if (off(UNIX_NOT_SET_PASS)) {
-		retval = pam_get_item(pamh, PAM_OLDAUTHTOK,
-		    (const void **)&oldpass);
+		retval = pam_get_item(pamh, PAM_OLDAUTHTOK, &item);
 	} else {
-		retval = pam_get_data(pamh, DATA_OLD_AUTHTOK,
-		    (const void **)&oldpass);
+		retval = pam_get_data(pamh, DATA_OLD_AUTHTOK, &item);
 		if (retval == PAM_NO_MODULE_DATA) {
 			retval = PAM_SUCCESS;
-			oldpass = NULL;
+			item = NULL;
 		}
 	}
+	oldpass = item;
 	D(("oldpass=[%s]", oldpass));
 
 	if (retval != PAM_SUCCESS) {
@@ -705,7 +705,7 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 			pam_unix_param.authtok_usage = USE_FORCED;
 		retval = _unix_read_password(pamh, NULL,
 		    PROMPT_NEWPASS1, PROMPT_NEWPASS2,
-		    DATA_NEW_AUTHTOK, (const char **)&newpass);
+		    DATA_NEW_AUTHTOK, &newpass);
 		pam_unix_param.authtok_usage = old_authtok_usage;
 
 		D(("returned to pam_sm_chauthtok"));
@@ -730,8 +730,8 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 
 	if (retval != PAM_SUCCESS) {
 		_log_err(LOG_NOTICE, "New password not acceptable");
-		_pam_overwrite(newpass);
-		_pam_overwrite(oldpass);
+		_pam_overwrite((char *)newpass);
+		_pam_overwrite((char *)oldpass);
 		return retval;
 	}
 
@@ -742,7 +742,7 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 
 	/* First we hash the new password and forget the plaintext. */
 	newhash = do_crypt(newpass);
-	_pam_overwrite(newpass);
+	_pam_overwrite((char *)newpass);
 
 	D(("password processed"));
 
@@ -751,13 +751,13 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 		retval = do_setpass(user, oldpass, newhash);
 	else
 		retval = PAM_BUF_ERR;
-	_pam_overwrite(oldpass);
+	_pam_overwrite((char *)oldpass);
 	_pam_delete(newhash);
 
 	if (retval == PAM_SUCCESS) {
-		if (pam_get_item(pamh, PAM_SERVICE,
-		    (const void **)&service) != PAM_SUCCESS)
-			service = NULL;
+		if (pam_get_item(pamh, PAM_SERVICE, &item) != PAM_SUCCESS)
+			item = NULL;
+		service = item;
 		_log_err(LOG_INFO,
 		    "%s: Password for %s changed by %s(uid=%u)",
 		    service ?: "UNKNOWN SERVICE",

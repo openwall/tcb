@@ -26,17 +26,16 @@
 IO_LOOP(read_loop, read,)
 IO_LOOP(write_loop, write, const)
 
+#include "attribute.h"
 #include "support.h"
 
-static void data_cleanup(pam_handle_t *pamh, void *data, int error_status)
+static void data_cleanup(unused pam_handle_t *pamh, void *data,
+    unused int error_status)
 {
 	_pam_delete(data);
 }
 
 /* syslogging function for errors and other information */
-#ifdef __GNUC__
-__attribute__ ((format (printf, 2, 3)))
-#endif
 void _log_err(int priority, const char *format, ...)
 {
 	va_list args;
@@ -56,12 +55,14 @@ void _log_err(int priority, const char *format, ...)
 static int converse(pam_handle_t * pamh, int num_msg,
     const struct pam_message **msg, struct pam_response **resp)
 {
+	const void *item;
 	struct pam_conv *conv;
 	int retval;
 
 	D(("begin to converse"));
 
-	retval = pam_get_item(pamh, PAM_CONV, (const void **)&conv);
+	retval = pam_get_item(pamh, PAM_CONV, &item);
+	conv = (struct pam_conv *)item;
 	if (retval == PAM_SUCCESS) {
 		retval = conv->conv(num_msg, msg, resp, conv->appdata_ptr);
 
@@ -418,8 +419,7 @@ int _unix_blankpasswd(const char *user)
  * Verify the password of a user.
  */
 
-static int unix_run_helper_binary(const pam_handle_t *pamh,
-    const char *user, const char *pass)
+static int unix_run_helper_binary(const char *user, const char *pass)
 {
 	int retval = PAM_AUTH_ERR, child, fail = 0, status, fds[2], retpipe[2];
 	sighandler_t sigchld, sigpipe;
@@ -573,7 +573,6 @@ static int check_crypt(const char *pass, const char *stored_hash)
 
 static int unix_verify_password_plain(struct unix_verify_password_param *arg)
 {
-	pam_handle_t *pamh = arg->pamh;
 	const char *user = arg->user;
 	const char *pass = arg->pass;
 	struct passwd *pw;
@@ -611,7 +610,7 @@ static int unix_verify_password_plain(struct unix_verify_password_param *arg)
 		if (uid == geteuid() && uid == pw->pw_uid && uid != 0) {
 			/* We are not root perhaps this is the reason? */
 			D(("running helper binary"));
-			retval = unix_run_helper_binary(pamh, user, pass);
+			retval = unix_run_helper_binary(user, pass);
 		} else {
 			D(("user's record unavailable"));
 			_log_err(LOG_ALERT,
@@ -656,7 +655,6 @@ static void failures_cleanup(pam_handle_t *pamh, void *data, int error_status)
 {
 	struct failed_auth *failures;
 	int quiet;
-	const char *service;
 
 	D(("called"));
 
@@ -668,9 +666,13 @@ static void failures_cleanup(pam_handle_t *pamh, void *data, int error_status)
 		if (!quiet && !error_status) {
 			/* log the number of authentication failures */
 			if (failures->count > 1) {
-				if (pam_get_item(pamh, PAM_SERVICE,
-				    (const void **)&service) != PAM_SUCCESS)
-					service = NULL;
+				const void *item;
+				const char *service;
+
+				if (pam_get_item(pamh, PAM_SERVICE, &item)
+				    != PAM_SUCCESS)
+					item = NULL;
+				service = item;
 				_log_err(LOG_NOTICE,
 				    "%s: %d more authentication failure%s "
 				    "for %s from %s(uid=%u)",
@@ -701,12 +703,14 @@ static int do_record_failure(pam_handle_t *pamh, const char *user, int retval)
 		pam_set_data(pamh, data_name, NULL, failures_cleanup);
 	} else {
 		struct failed_auth *new;
-		const struct failed_auth *old;
 
 		/* get a failure recorder */
 		new = (struct failed_auth *)malloc(sizeof(struct failed_auth));
 
 		if (new) {
+			const void *item;
+			const struct failed_auth *old;
+
 			/* possible strdup() failures; nothing we can do;
 			 * incomplete logging in this case */
 			new->user = strdup(getpwnam(user) ?
@@ -715,9 +719,10 @@ static int do_record_failure(pam_handle_t *pamh, const char *user, int retval)
 			new->name = strdup(getlogin() ?: "");
 
 			/* any previous failures for this user? */
-			if (pam_get_data(pamh, data_name,
-			    (const void **)&old) != PAM_SUCCESS)
-				old = NULL;
+			if (pam_get_data(pamh, data_name, &item)
+			    != PAM_SUCCESS)
+				item = NULL;
+			old = item;
 
 			if (old) {
 				new->count = old->count + 1;
@@ -726,9 +731,10 @@ static int do_record_failure(pam_handle_t *pamh, const char *user, int retval)
 			} else {
 				const char *service;
 
-				if (pam_get_item(pamh, PAM_SERVICE,
-				    (const void **)&service) != PAM_SUCCESS)
-					service = NULL;
+				if (pam_get_item(pamh, PAM_SERVICE, &item)
+				    != PAM_SUCCESS)
+					item = NULL;
+				service = item;
 				_log_err(LOG_NOTICE,
 				    "%s: Authentication failed "
 				    "for %s from %s(uid=%u)",
@@ -782,7 +788,7 @@ int _unix_read_password(pam_handle_t *pamh,
     const char *comment, const char *prompt1, const char *prompt2,
     const char *data_name, const char **pass)
 {
-	const char *item;
+	const void *item;
 	char *token;
 	int authtok_flag;
 	int retval;
@@ -797,8 +803,7 @@ int _unix_read_password(pam_handle_t *pamh,
 
 	/* should we obtain the password from a PAM item? */
 	if (pam_unix_param.authtok_usage != USE_NONE) {
-		retval = pam_get_item(pamh, authtok_flag,
-		    (const void **)&item);
+		retval = pam_get_item(pamh, authtok_flag, &item);
 		if (retval != PAM_SUCCESS) {
 			/* very strange */
 			return retval;
@@ -886,8 +891,8 @@ int _unix_read_password(pam_handle_t *pamh,
 		retval = pam_set_item(pamh, authtok_flag, token);
 		_pam_delete(token);
 		if (retval != PAM_SUCCESS ||
-		    (retval = pam_get_item(pamh, authtok_flag,
-		    (const void **)&item)) != PAM_SUCCESS) {
+		    (retval = pam_get_item(pamh, authtok_flag, &item))
+		    != PAM_SUCCESS) {
 			_log_err(LOG_CRIT, "Error manipulating password");
 			return retval;
 		}
@@ -1064,7 +1069,7 @@ static const char *get_optval(const char *name, struct cmdline_opts *parsed)
 
 int _set_ctrl(int flags, int argc, const char **argv)
 {
-	int i;
+	unsigned int i;
 	const char *param;
 	struct cmdline_opts the_cmdline_opts[] = {
 		{"authtok_usage=", NULL, NULL},

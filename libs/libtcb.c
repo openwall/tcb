@@ -11,6 +11,7 @@
 #include <stdlib.h>
 
 #include "tcb.h"
+#include "attribute.h"
 
 #define TIMEOUT				1
 #define TRIES				15
@@ -59,7 +60,7 @@ static void unsetup_timer()
 	setitimer(ITIMER_REAL, &v, 0);
 }
 
-static void alarm_catch(int sig)
+static void alarm_catch(unused int sig)
 {
 	/* does nothing, but fcntl F_SETLKW will fail with EINTR */
 }
@@ -149,14 +150,14 @@ int ch_uid(uid_t uid, uid_t *save)
 	uid_t tmp = setfsuid(uid);
 	if (save)
 		*save = tmp;
-	return setfsuid(uid) == uid;
+	return (uid_t) setfsuid(uid) == uid;
 }
 int ch_gid(gid_t gid, gid_t *save)
 {
 	gid_t tmp = setfsgid(gid);
 	if (save)
 		*save = tmp;
-	return setfsgid(gid) == gid;
+	return (gid_t) setfsgid(gid) == gid;
 }
 #else
 int ch_uid(uid_t uid, uid_t *save)
@@ -206,7 +207,7 @@ int tcb_drop_priv_r(const char *name, struct tcb_privs *p)
 	free(dir);
 
 	res = getgroups(sizeof(p->grpbuf), p->grpbuf);
-	if (res == -1 || res > sizeof(p->grpbuf))
+	if (res < 0 || (size_t)res > sizeof(p->grpbuf))
 		return -1;
 
 	p->saved_groups = res;
