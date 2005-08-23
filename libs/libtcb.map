@@ -1,0 +1,14 @@
+# $Id$
+
+{
+  global:
+    lckpwdf_tcb;
+    ulckpwdf_tcb;
+    tcb_drop_priv;
+    tcb_drop_priv_r;
+    tcb_gain_priv;
+    tcb_gain_priv_r;
+    tcb_is_suspect;
+  local:
+    *;
+};

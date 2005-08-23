@@ -1,0 +1,11 @@
+# $Id$
+
+{
+  global:
+    _nss_tcb_endspent;
+    _nss_tcb_getspent_r;
+    _nss_tcb_getspnam_r;
+    _nss_tcb_setspent;
+  local:
+    *;
+};

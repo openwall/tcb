@@ -145,14 +145,14 @@ static struct tcb_privs glob_privs = { {0}, 0, -1, -1, 0 };
  * Two setfsuid() in a row - stupid, but how the hell am I supposed to check
  * whether setfsuid() succeeded?
  */
-int ch_uid(uid_t uid, uid_t *save)
+static int ch_uid(uid_t uid, uid_t *save)
 {
 	uid_t tmp = setfsuid(uid);
 	if (save)
 		*save = tmp;
 	return (uid_t) setfsuid(uid) == uid;
 }
-int ch_gid(gid_t gid, gid_t *save)
+static int ch_gid(gid_t gid, gid_t *save)
 {
 	gid_t tmp = setfsgid(gid);
 	if (save)
@@ -160,13 +160,13 @@ int ch_gid(gid_t gid, gid_t *save)
 	return (gid_t) setfsgid(gid) == gid;
 }
 #else
-int ch_uid(uid_t uid, uid_t *save)
+static int ch_uid(uid_t uid, uid_t *save)
 {
 	if (save)
 		*save = geteuid();
 	return setreuid(-1, uid) != -1;
 }
-int ch_gid(gid_t gid, gid_t *save)
+static int ch_gid(gid_t gid, gid_t *save)
 {
 	if (save)
 		*save = getegid();

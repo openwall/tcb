@@ -4,6 +4,8 @@ LIBTCB = libtcb.so.0
 LIBTCB_LONG = $(LIBTCB).9.8
 LIBNSS = libnss_tcb.so.2
 LIBTCB_A = libtcb.a
+LIB_MAP = libtcb.map
+NSS_MAP = libnss_tcb.map
 
 all: $(LIBTCB_LONG) $(LIBNSS) $(LIBTCB_A)
 
@@ -14,13 +16,15 @@ $(LIBTCB_A): libtcb_a.o
 libtcb_a.o: libtcb.c
 	$(CC) $(CFLAGS) $(DBGFLAG) -c $< -o $@
 
-$(LIBTCB_LONG): libtcb.o
-	$(CC) $(DBGFLAG) -shared -o $@ -Wl,-soname,$(LIBTCB) $< -lc
+$(LIBTCB_LONG): libtcb.o $(LIB_MAP)
+	$(CC) $(DBGFLAG) -shared -o $@ -Wl,-soname,$(LIBTCB) \
+		-Wl,--version-script=$(LIB_MAP) $< -lc
 	ln -sf $@ $(LIBTCB)
 	ln -sf $(LIBTCB) libtcb.so
 
-$(LIBNSS): nss.o $(LIBTCB_LONG)
-	$(CC) $(DBGFLAG) -shared -o $@ $< -L. $(LIBNSL) -ltcb
+$(LIBNSS): nss.o $(NSS_MAP) $(LIBTCB_LONG)
+	$(CC) $(DBGFLAG) -shared -o $@ -Wl,--version-script=$(NSS_MAP) \
+		$< -L. $(LIBNSL) -ltcb
 
 .c.o:
 	$(CC) $(CFLAGS) -fPIC -c $< -o $@

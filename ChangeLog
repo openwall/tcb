@@ -1,3 +1,19 @@
+2005-08-18  Dmitry V. Levin  <ldv@altlinux.org>
+
+	Restrict list of global symbols exported by the library,
+	NSS and PAM modules.
+
+	* libs/Makefile: New variables: LIB_MAP and NSS_MAP.  Pass
+	--version-script argument when linking shared library and the
+	NSS module.
+	* libs/libnss_tcb.map: New file, version script for the NSS module.
+	* libs/libtcb.c (ch_uid, ch_gid): Make static.
+	* libs/libtcb.map: New file, version script for the library.
+
+	* pam_tcb/Makefile: New variable: PAM_MAP.  Pass --version-script
+	argument when linking the PAM module.
+	* pam_tcb/pam_tcb.map: New file, version script for the PAM module.
+
 2005-04-22  Dmitry V. Levin  <ldv@altlinux.org>
 
 	Enhance multilib support.

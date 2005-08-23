@@ -1,6 +1,7 @@
 include ../Make.defs
 
 PAM_TCB = pam_tcb.so
+PAM_MAP = pam_tcb.map
 
 LIBSRC = \
 	pam_unix_auth.c pam_unix_acct.c pam_unix_sess.c pam_unix_passwd.c \
@@ -10,8 +11,9 @@ LIBOBJ = $(LIBSRC:.c=.o)
 
 all: $(PAM_TCB)
 
-$(PAM_TCB): $(LIBOBJ)
-	$(CC) $(LDFLAGS) -shared -o $@ $(LIBOBJ) -lnsl -lcrypt -ltcb
+$(PAM_TCB): $(LIBOBJ) $(PAM_MAP)
+	$(CC) $(LDFLAGS) -shared -o $@ -Wl,--version-script=$(PAM_MAP) \
+		$(LIBOBJ) -lnsl -lcrypt -lpam -ltcb
 
 .c.o:
 	$(CC) $(CFLAGS) -fPIC -c $< -o $@
