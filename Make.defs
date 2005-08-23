@@ -8,6 +8,8 @@ CFLAGS += $(DBGFLAG) -I../include -Wall -DLINUX_PAM
 LDFLAGS += $(DBGFLAG) -L../libs
 
 SBINDIR = /sbin
+SLIBDIR = /lib
+LIBDIR = /usr/lib
 LIBEXECDIR = /usr/libexec
 MANDIR = /usr/man
 

@@ -28,6 +28,8 @@ install: install-common
 		$(DESTDIR)$(LIBEXECDIR)/chkpwd/
 
 install-common:
+	mkdir -p $(DESTDIR)$(SBINDIR)
+	mkdir -p $(DESTDIR)$(MANDIR)/man8
 	install -m 700 $(CONVERT) $(DESTDIR)$(SBINDIR)/
 	install -m 700 $(UNCONVERT) $(DESTDIR)$(SBINDIR)/
 	install -m 644 $(CONVERT).8 $(DESTDIR)$(MANDIR)/man8/

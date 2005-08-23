@@ -23,16 +23,17 @@ support.o: support.c
 install-non-root: install
 
 install:
-	mkdir -p $(DESTDIR)/lib/security
-	install -m $(SHLIBMODE) $(PAM_TCB) $(DESTDIR)/lib/security/
+	mkdir -p $(DESTDIR)$(SLIBDIR)/security
+	mkdir -p $(DESTDIR)$(MANDIR)/man8
+	install -m $(SHLIBMODE) $(PAM_TCB) $(DESTDIR)$(SLIBDIR)/security/
 	install -m 644 pam_tcb.8 $(DESTDIR)$(MANDIR)/man8/
 
-install-pam_unix:
-	ln -s $(PAM_TCB) $(DESTDIR)/lib/security/pam_unix.so
-	ln -s $(PAM_TCB) $(DESTDIR)/lib/security/pam_unix_acct.so
-	ln -s $(PAM_TCB) $(DESTDIR)/lib/security/pam_unix_auth.so
-	ln -s $(PAM_TCB) $(DESTDIR)/lib/security/pam_unix_passwd.so
-	ln -s $(PAM_TCB) $(DESTDIR)/lib/security/pam_unix_session.so
+install-pam_unix: install
+	ln -s $(PAM_TCB) $(DESTDIR)$(SLIBDIR)/security/pam_unix.so
+	ln -s $(PAM_TCB) $(DESTDIR)$(SLIBDIR)/security/pam_unix_acct.so
+	ln -s $(PAM_TCB) $(DESTDIR)$(SLIBDIR)/security/pam_unix_auth.so
+	ln -s $(PAM_TCB) $(DESTDIR)$(SLIBDIR)/security/pam_unix_passwd.so
+	ln -s $(PAM_TCB) $(DESTDIR)$(SLIBDIR)/security/pam_unix_session.so
 	install -m 644 pam_unix.8 $(DESTDIR)$(MANDIR)/man8/
 
 clean:

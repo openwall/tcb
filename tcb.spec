@@ -1,4 +1,4 @@
-# $Id: tcb.spec,v 1.32 2005/04/19 23:10:08 solar Exp $
+# $Id: tcb.spec,v 1.33 2005/04/24 23:21:00 ldv Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
@@ -39,7 +39,8 @@ CFLAGS="$RPM_OPT_FLAGS -DENABLE_SETFSUGID" %__make
 
 %install
 rm -rf %buildroot
-make install-non-root install-pam_unix DESTDIR=%buildroot MANDIR=%_mandir
+make install-non-root install-pam_unix DESTDIR=%buildroot MANDIR=%_mandir \
+	LIBDIR=%_libdir SLIBDIR=/%_lib
 
 %post -p /sbin/ldconfig
 %postun -p /sbin/ldconfig
@@ -56,14 +57,14 @@ rmdir /sbin/chkpwd.d
 %files
 %defattr(-,root,root)
 %doc LICENSE
-/lib/libnss_tcb.so.2
-/lib/libtcb.so.*
-/lib/security/pam_tcb.so
-/lib/security/pam_unix.so
-/lib/security/pam_unix_acct.so
-/lib/security/pam_unix_auth.so
-/lib/security/pam_unix_passwd.so
-/lib/security/pam_unix_session.so
+/%_lib/libnss_tcb.so.2
+/%_lib/libtcb.so.*
+/%_lib/security/pam_tcb.so
+/%_lib/security/pam_unix.so
+/%_lib/security/pam_unix_acct.so
+/%_lib/security/pam_unix_auth.so
+/%_lib/security/pam_unix_passwd.so
+/%_lib/security/pam_unix_session.so
 /sbin/tcb_convert
 /sbin/tcb_unconvert
 %attr(0700,root,root) %verify(not mode group) %_libexecdir/chkpwd/tcb_chkpwd
