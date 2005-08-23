@@ -1,3 +1,17 @@
+2005-08-19  Dmitry V. Levin  <ldv@altlinux.org>
+
+	In the PAM module, implement "openlog" option and disable
+	openlog/closelog calls for each logging function invocation
+	by default.
+
+	* pam_tcb/support.h: Rename UNIX_NOOPENLOG to UNIX_OPENLOG.
+	* pam_tcb/support.c (_log_err): When UNIX_OPENLOG is not set,
+	prefix log line with the module name.
+	(bool_names): Add negate field.
+	(unix_bools): Add "openlog" option.
+	(parse_opt): Handle negate field.
+	(_set_ctrl) [ENABLE_OPENLOG]: Set UNIX_OPENLOG.
+
 2005-08-18  Dmitry V. Levin  <ldv@altlinux.org>
 
 	Restrict list of global symbols exported by the library,

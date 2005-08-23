@@ -39,16 +39,27 @@ static void data_cleanup(unused pam_handle_t *pamh, void *data,
 void _log_err(int priority, const char *format, ...)
 {
 	va_list args;
+	int     saved_errno = errno;
+	char   *fmt = NULL;
 
-	if (off(UNIX_NOLOG)) {
-		va_start(args, format);
-		if (off(UNIX_NOOPENLOG))
-			openlog("pam_tcb", LOG_CONS | LOG_PID, LOG_AUTH);
-		vsyslog(priority, format, args);
-		va_end(args);
-		if (off(UNIX_NOOPENLOG))
-			closelog();
+	if (on(UNIX_NOLOG))
+		return;
+
+	if (on(UNIX_OPENLOG))
+		openlog("pam_tcb", LOG_CONS | LOG_PID, LOG_AUTH);
+	else if (asprintf(&fmt, "pam_tcb: %s", format) < 0)
+	{
+		syslog(LOG_AUTH | LOG_ERR, "pam_tcb: _log_err: asprintf: %m");
+		fmt = NULL;
 	}
+
+	va_start(args, format);
+	errno = saved_errno;
+	vsyslog(LOG_AUTH | priority, (fmt ?: format), args);
+	va_end(args);
+
+	if (on(UNIX_OPENLOG))
+		closelog();
 }
 
 /* This is a front-end for module-application conversations. */
@@ -992,24 +1003,25 @@ struct pam_unix_params pam_unix_param;
 
 static struct bool_names {
 	const char *name;
-	int optval;
+	int optval, negate;
 } unix_bools[] = {
-	{"audit", UNIX_AUDIT},
-	{"not_set_pass", UNIX_NOT_SET_PASS},
-	{"use_authtok", UNIX_USE_AUTHTOK},
-	{"shadow", UNIX_SHADOW},
-	{"nisplus", UNIX_NISPLUS},
-	{"passwd", UNIX_PASSWD},
-	{"noopenlog", UNIX_NOOPENLOG},
-	{"nullok", UNIX__NULLOK},
-	{"debug", UNIX_DEBUG},
-	{"nodelay", UNIX_NODELAY},
-	{"plain_crypt", UNIX_PLAIN_CRYPT},
-	{"fork", UNIX_FORKAUTH},
-	{"likeauth", UNIX_LIKE_AUTH},
-	{"nolog", UNIX_NOLOG},
-	{"blank_nolog", UNIX_NOLOG_BLANK},
-	{NULL, 0}
+	{"audit", UNIX_AUDIT, 0},
+	{"not_set_pass", UNIX_NOT_SET_PASS, 0},
+	{"use_authtok", UNIX_USE_AUTHTOK, 0},
+	{"shadow", UNIX_SHADOW, 0},
+	{"nisplus", UNIX_NISPLUS, 0},
+	{"passwd", UNIX_PASSWD, 0},
+	{"openlog", UNIX_OPENLOG, 0},
+	{"noopenlog", UNIX_OPENLOG, 1},
+	{"nullok", UNIX__NULLOK, 0},
+	{"debug", UNIX_DEBUG, 0},
+	{"nodelay", UNIX_NODELAY, 0},
+	{"plain_crypt", UNIX_PLAIN_CRYPT, 0},
+	{"fork", UNIX_FORKAUTH, 0},
+	{"likeauth", UNIX_LIKE_AUTH, 0},
+	{"nolog", UNIX_NOLOG, 0},
+	{"blank_nolog", UNIX_NOLOG_BLANK, 0},
+	{NULL, 0, 0}
 };
 
 static int parse_opt(const char *item, struct cmdline_opts *parsed)
@@ -1029,7 +1041,10 @@ static int parse_opt(const char *item, struct cmdline_opts *parsed)
 	D(("pam_unix arg: %s", item));
 	for (j = 0; unix_bools[j].name; ++j)
 	if (!strcmp(opt, unix_bools[j].name)) {
-		set(unix_bools[j].optval);
+		if (unix_bools[j].negate)
+			unset(unix_bools[j].optval);
+		else
+			set(unix_bools[j].optval);
 		return 1;
 	}
 
@@ -1084,6 +1099,10 @@ int _set_ctrl(int flags, int argc, const char **argv)
 
 	for (i = 0; i < OPT_SIZE; i++)
 		pam_unix_param.ctrl[i] = 0;
+
+#ifdef ENABLE_OPENLOG
+	set(UNIX_OPENLOG);
+#endif
 
 	/* set some flags manually */
 	if (getuid() == 0 && !(flags & PAM_CHANGE_EXPIRED_AUTHTOK)) {

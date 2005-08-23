@@ -72,7 +72,7 @@ enum {
 	UNIX_NISPLUS,		/* wish to use NIS+ for auth */
 	UNIX_PASSWD,		/* retr hashes from /etc/passwd for auth */
 
-	UNIX_NOOPENLOG,		/* don't use openlog(3)/closelog(3) calls */
+	UNIX_OPENLOG,		/* use openlog(3)/closelog(3) calls */
 	UNIX__NULLOK,		/* null token ok */
 	UNIX_DEBUG,		/* send more info to syslog(3) */
 	UNIX_NODELAY,		/* admin does not want a fail-delay */
