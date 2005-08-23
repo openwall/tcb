@@ -1,5 +1,11 @@
 2005-08-23  Dmitry V. Levin  <ldv@altlinux.org>
 
+	Package pam_pwdb.so symlink and pam_pwdb(8) manual page link.
+
+	* pam_tcb/pam_pwdb.8: New file.
+	* Makefile, pam_tcb/Makefile, tcb.spec:
+	Install pam_pwdb.so and pam_pwdb.8.
+
 	* tcb.spec: 0.9.9.
 
 2005-08-19  Dmitry V. Levin  <ldv@altlinux.org>

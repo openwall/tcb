@@ -4,5 +4,5 @@ all install install-non-root clean:
 	$(MAKE) -C progs $@
 	$(MAKE) -C pam_tcb $@
 
-install-pam_unix:
+install-pam_unix install-pam_pwdb:
 	$(MAKE) -C pam_tcb $@
