@@ -1,4 +1,4 @@
-.TH PAM_TCB 8 "18 April 2003" "Openwall Project"
+.TH PAM_TCB 8 "23 April 2005" "Openwall Project"
 .SH NAME
 \fBpam_tcb\fR \- authentication, account, session, and password management
 PAM module for Unix with support for the tcb password shadowing scheme
@@ -47,8 +47,9 @@ logs the opening and closing of PAM sessions via
 .BR syslog (3).
 It uses
 .B LOG_AUTH
-as the syslog facility and, unless the
-.B noopenlog
+as the syslog facility and either adds "pam_tcb: " prefix to log messages
+or, if the
+.B openlog
 option is given, sets the ident to "pam_tcb".
 This functionality may be disabled with the
 .B nolog
@@ -114,10 +115,24 @@ Log even more debugging information, including unknown usernames.
 This has the risk of potentially logging a password that a user could
 have given instead of a username.
 .TP
-.B noopenlog
+.B openlog
 Normally,
 .B pam_tcb
-will call
+will add "pam_tcb: " prefix to log messages.
+The
+.B openlog
+option disables this behavior and causes 
+.B pam_tcb
+to call
+.BR openlog (3)
+with ident "pam_tcb" before logging and
+.BR closelog (3)
+afterwards.
+.TP
+.B noopenlog
+If
+.B pam_tcb
+was compiled with ENABLE_OPENLOG, it will call
 .BR openlog (3)
 with ident "pam_tcb" before logging and
 .BR closelog (3)

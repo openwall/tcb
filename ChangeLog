@@ -21,6 +21,7 @@
 	(unix_bools): Add "openlog" option.
 	(parse_opt): Handle negate field.
 	(_set_ctrl) [ENABLE_OPENLOG]: Set UNIX_OPENLOG.
+	* pam_tcb/pam_tcb.8: Document "openlog" option.
 
 2005-08-18  Dmitry V. Levin  <ldv@altlinux.org>
 
