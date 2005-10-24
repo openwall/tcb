@@ -1,4 +1,4 @@
-# $Id: tcb.spec,v 1.35 2005/08/23 16:03:44 ldv Exp $
+# $Id: tcb.spec,v 1.36 2005/08/23 22:21:07 ldv Exp $
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
@@ -38,7 +38,7 @@ building tcb-aware applications.
 %setup -q
 
 %build
-CFLAGS="$RPM_OPT_FLAGS -DENABLE_SETFSUGID" %__make
+CFLAGS="%optflags -DENABLE_SETFSUGID" %__make
 
 %install
 rm -rf %buildroot
