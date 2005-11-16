@@ -1,4 +1,4 @@
-# $Id: tcb.spec,v 1.37 2005/10/24 02:22:13 solar Exp $
+# $Owl$
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
