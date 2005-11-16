@@ -1,6 +1,6 @@
 /*
  * yppasswdd
- * Copyright 1994, 1995, 1996 Olaf Kirch, <okir@monad.swb.de>
+ * Copyright 1994, 1995, 1996 Olaf Kirch, <okir at monad.swb.de>
  *
  * This program is covered by the GNU General Public License, version 2.
  * It is provided in the hope that it is useful. However, the author

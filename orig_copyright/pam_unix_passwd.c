@@ -1,5 +1,5 @@
 /*
- * Main coding by Elliot Lee <sopwith@redhat.com>, Red Hat Software.
+ * Main coding by Elliot Lee <sopwith at redhat.com>, Red Hat Software.
  * Copyright (C) 1996.
  * Copyright (c) Jan Rêkorajski, 1999.
  *
