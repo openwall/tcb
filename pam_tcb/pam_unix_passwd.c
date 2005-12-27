@@ -723,7 +723,7 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 		 * propose as their new password. Verify that the new
 		 * password is acceptable.
 		 */
-		if (!*newpass)
+		if (newpass && !*newpass)
 			newpass = NULL;
 		retval = unix_approve_pass(pamh, oldpass, newpass);
 	}

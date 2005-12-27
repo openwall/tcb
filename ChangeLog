@@ -1,5 +1,11 @@
 2005-09-11  Dmitry V. Levin  <ldv at owl.openwall.com>
 
+	* pam_tcb/pam_unix_passwd.c (pam_sm_chauthtok): Fix password
+	string check to avoid potential NULL dereference.
+	* pam_tcb/support.c (unix_verify_password_plain): Check password
+	string to avoid potential NULL dereference.
+	(unix_run_helper_binary): Remove redundant password string check.
+
 	* progs/tcb_unconvert.c (copy_user_from_tcb): Add const qualifier
 	to msg variable, to fix warning reported by "gcc -Wwrite-strings".
 

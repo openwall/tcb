@@ -492,8 +492,6 @@ static int unix_run_helper_binary(const char *user, const char *pass)
 			if (write_loop(fds[1], "nonull\0\0", 8) != 8)
 				fail = 1;
 		}
-		if (!pass)
-			pass = "";
 		len = strlen(user) + 1;
 		if (write_loop(fds[1], user, len) != len)
 			fail = 1;
@@ -615,6 +613,8 @@ static int unix_verify_password_plain(struct unix_verify_password_param *arg)
 	}
 
 	retval = PAM_SUCCESS;
+	if (!pass)
+		pass = "";
 	if (!salt) {
 		/* we're not faking, we have an existing user, so... */
 		uid_t uid = getuid();
