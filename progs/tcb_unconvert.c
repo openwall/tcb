@@ -28,7 +28,7 @@ static int copy_user_from_tcb(const char *user, FILE *outf)
 	int fd;
 	unsigned char *p;
 	int c, colons;
-	char *msg;
+	const char *msg;
 	int retval;
 
 	retval = -1;

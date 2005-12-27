@@ -1,3 +1,8 @@
+2005-09-11  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	* progs/tcb_unconvert.c (copy_user_from_tcb): Add const qualifier
+	to msg variable, to fix warning reported by "gcc -Wwrite-strings".
+
 2005-08-23  Dmitry V. Levin  <ldv at altlinux.org>
 
 	Package pam_pwdb.so symlink and pam_pwdb(8) manual page link.
