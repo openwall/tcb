@@ -619,7 +619,7 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 		return PAM_ABORT;
 
 	/* get the username */
-	retval = pam_get_user(pamh, &user, PROMPT_USER);
+	retval = pam_get_user(pamh, &user, NULL);
 	if (retval == PAM_SUCCESS) {
 		/*
 		 * Various libraries at various times have had bugs related to

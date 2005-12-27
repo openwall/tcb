@@ -10,13 +10,6 @@
 /* should be large enough to hold "*NP*" */
 #define HASH_PREFIX_SIZE		5
 
-/*
- * The default username prompt, should normally not be used due to
- * applications providing a username already.
- */
-#define PROMPT_USER \
-	"login: "
-
 /* Password prompt to use for authentication */
 #define PROMPT_PASS \
 	"Password: "

@@ -1,5 +1,11 @@
 2005-09-11  Dmitry V. Levin  <ldv at owl.openwall.com>
 
+	* pam_tcb/pam_unix_auth.c (pam_sm_authenticate): Do not override
+	user prompt in calls to pam_get_user, recent PAM releases provide
+	better default.
+	* pam_tcb/pam_unix_passwd.c (pam_sm_chauthtok): Likewise.
+	* pam_tcb/support.h: Remove PROMPT_USER.
+
 	* pam_tcb/pam_unix_passwd.c (pam_sm_chauthtok): Fix password
 	string check to avoid potential NULL dereference.
 	* pam_tcb/support.c (unix_verify_password_plain): Check password
