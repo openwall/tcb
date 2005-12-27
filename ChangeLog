@@ -1,3 +1,53 @@
+2005-09-26  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	Update logging code to use pam_syslog.
+	Update conversation code to use pam_prompt.
+
+	* include/attribute.h (TCB_GNUC_PREREQ, TCB_FORMAT, TCB_NONNULL):
+	New macro.
+	(unused): Rewrite using TCB_GNUC_PREREQ.
+	* pam_tcb/compat.c: New file, defines pam_syslog and pam_prompt
+	if PAM does not provide them.
+	* pam_tcb/compat.h: New file, defines prototypes for pam_syslog
+	and pam_prompt if PAM does not provide them.
+	* pam_tcb/Makefile (LIBSRC): Add compat.c.
+	* pam_tcb/pam_unix_acct.c (acct_shadow): Add pam handle parameter.
+	(pam_sm_acct_mgmt): Pass pam handle to functions which now require
+	it.  Replace _log_err with pam_syslog.	Replace _make_remark
+	with pam_error and pam_info.
+	* pam_tcb/pam_unix_auth.c (pam_sm_authenticate, pam_sm_setcred):
+	Pass pam handle to functions which now require it.
+	(pam_sm_authenticate): Replace _log_err with pam_syslog.
+	* pam_tcb/pam_unix_passwd.c (PASSWD_TMP_FILE): Remove macro.
+	(update_file): New function, based on update_passwd and
+	update_shadow.
+	(update_passwd, update_shadow): Rewrite using update_file.
+	(get_nis_server, update_nis, do_setpass): Add pam handle
+	parameter.
+	(get_nis_server, update_nis, do_setpass, unix_approve_pass,
+	unix_prelim, pam_sm_chauthtok): Pass pam handle to functions
+	which now require it.  Replace _log_err with pam_syslog.
+	Replace _make_remark with pam_error.
+	* pam_tcb/pam_unix_sess.c (pam_sm_open_session,
+	pam_sm_close_session): Pass pam handle to functions which now
+	require it.  Replace _log_err with pam_syslog.
+	* pam_tcb/support.c (_log_err, converse, _make_remark): Remove
+	no longer used functions.
+	(_unix_fork, user_in_file, _unix_user_in_db,
+	unix_blankpasswd_plain, _unix_blankpasswd, check_crypt,
+	unix_verify_password_plain, crypt_wrapper_ra, crypt_wrapper,
+	do_crypt, parse_opt, _set_ctrl): Add pam handle parameter.
+	Pass pam handle to functions which now require it.
+	Replace _log_err with pam_syslog.
+	(_unix_read_password): Rewrite prompt handling to use pam_info
+	and pam_prompt.
+	* pam_tcb/support.h: Include "attribute.h" and "compat.h".
+	(cmdline_opts): Add const qualifier to optname variable.
+	(cb_func, _unix_user_in_db, _unix_fork, _set_ctrl,
+	_unix_blankpasswd, _unix_read_password, crypt_wrapper, do_crypt):
+	Update function prototypes.
+	(_log_err, _make_remark): Remove prototypes of removed functions.
+
 2005-09-12  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	Implement OpenPAM build support.

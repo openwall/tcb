@@ -27,10 +27,11 @@ enum {
 	ACCT_SUCCESS = 255
 };
 
-static int acct_shadow(const char *user)
+static int acct_shadow(unused pam_handle_t *pamh, const void *void_user)
 {
 	int daysleft;
 	time_t curdays;
+	const char *user = void_user;
 	struct passwd *pw;
 	struct spwd *spw = NULL;
 
@@ -85,11 +86,10 @@ PAM_EXTERN int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags,
 	const char *user;
 	int retval, daysleft = 0;
 	struct passwd *pw;
-	char *message;
 
 	D(("called"));
 
-	if (!_set_ctrl(flags, argc, argv))
+	if (!_set_ctrl(pamh, flags, argc, argv))
 		return PAM_ABORT;
 	set(UNIX_SHADOW);
 
@@ -97,21 +97,21 @@ PAM_EXTERN int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags,
 	user = item;
 	D(("user = `%s'", user));
 	if (retval != PAM_SUCCESS || !user) {
-		_log_err(LOG_ALERT, "Unable to identify user");
+		pam_syslog(pamh, LOG_ALERT, "Unable to identify user");
 		return PAM_USER_UNKNOWN;
 	}
 
 	pw = getpwnam(user);
 	endpwent();
 	if (!pw) {
-		_log_err(LOG_ALERT, "Unable to identify user");
+		pam_syslog(pamh, LOG_ALERT, "Unable to identify user");
 		return PAM_USER_UNKNOWN;
 	}
 
 	if (off(UNIX_FORKAUTH))
-		retval = acct_shadow(user);
+		retval = acct_shadow(pamh, user);
 	else
-		retval = _unix_fork((cb_func) acct_shadow, user);
+		retval = _unix_fork(pamh, acct_shadow, user);
 	if (retval > 255) {
 		daysleft = retval / 256;
 		retval %= 256;
@@ -128,47 +128,49 @@ PAM_EXTERN int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags,
 		return PAM_CRED_INSUFFICIENT;
 
 	case ACCT_3:
-		_log_err(LOG_NOTICE,
+		pam_syslog(pamh, LOG_NOTICE,
 		    "Account %s has expired (account expired)", user);
-		_make_remark(pamh, PAM_ERROR_MSG, MESSAGE_ACCT_EXPIRED);
+		if (off(UNIX__QUIET))
+			pam_error(pamh, "%s", MESSAGE_ACCT_EXPIRED);
 		D(("account expired (1)"));
 		return PAM_ACCT_EXPIRED;
 
 	case ACCT_4:
-		_log_err(LOG_NOTICE,
+		pam_syslog(pamh, LOG_NOTICE,
 		    "Account %s has expired (failed to change password)",
 		    user);
-		_make_remark(pamh, PAM_ERROR_MSG, MESSAGE_ACCT_EXPIRED);
+		if (off(UNIX__QUIET))
+			pam_error(pamh, "%s", MESSAGE_ACCT_EXPIRED);
 		D(("account expired (2)"));
 		return PAM_ACCT_EXPIRED;
 
 	case ACCT_5:
-		_log_err(LOG_INFO,
+		pam_syslog(pamh, LOG_INFO,
 		    "Expired password for %s (root enforced)", user);
-		_make_remark(pamh, PAM_ERROR_MSG, MESSAGE_PASS_EXPIRED);
+		if (off(UNIX__QUIET))
+			pam_error(pamh, "%s", MESSAGE_PASS_EXPIRED);
 		D(("need a new password (1)"));
 		return PAM_NEW_AUTHTOK_REQD;
 
 	case ACCT_6:
-		_log_err(LOG_INFO,
+		pam_syslog(pamh, LOG_INFO,
 		    "Expired password for %s (password aged)", user);
-		_make_remark(pamh, PAM_ERROR_MSG, MESSAGE_PASS_EXPIRED);
+		if (off(UNIX__QUIET))
+			pam_error(pamh, "%s", MESSAGE_PASS_EXPIRED);
 		D(("need a new password (2)"));
 		return PAM_NEW_AUTHTOK_REQD;
 
 	case ACCT_7:
-		_log_err(LOG_INFO,
+		pam_syslog(pamh, LOG_INFO,
 		    "Password for %s will expire in %d day%s",
 		    user, daysleft, daysleft == 1 ? "" : "s");
-		if (asprintf(&message, MESSAGE_WARN_EXPIRE,
-		    daysleft, daysleft == 1 ? "" : "s") >= 0) {
-			_make_remark(pamh, PAM_TEXT_INFO, message);
-			free(message);
-		}
+		if (off(UNIX__QUIET))
+			pam_info(pamh, MESSAGE_WARN_EXPIRE,
+			    daysleft, daysleft == 1 ? "" : "s");
 		return PAM_SUCCESS;
 
 	default:
-		_log_err(LOG_CRIT,
+		pam_syslog(pamh, LOG_CRIT,
 		    "Unknown return code from acct_shadow (%d)", retval);
 	}
 

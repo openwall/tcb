@@ -5,7 +5,7 @@ PAM_MAP = pam_tcb.map
 
 LIBSRC = \
 	pam_unix_auth.c pam_unix_acct.c pam_unix_sess.c pam_unix_passwd.c \
-	support.c yppasswd_xdr.c
+	support.c compat.c yppasswd_xdr.c
 
 LIBOBJ = $(LIBSRC:.c=.o)
 

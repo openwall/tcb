@@ -28,11 +28,11 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
     int argc, const char **argv)
 {
 	int retval, *retval_data;
-	const char *user, *pass = NULL, *service;
+	const char *user, *pass = NULL;
 
 	D(("called"));
 
-	if (!_set_ctrl(flags, argc, argv))
+	if (!_set_ctrl(pamh, flags, argc, argv))
 		return PAM_ABORT;
 
 	/* failed malloc is ok */
@@ -49,15 +49,17 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 		 */
 		if (!user || !isalpha((int)(unsigned char)*user)) {
 			if (user && on(UNIX_AUDIT))
-				_log_err(LOG_ERR, "Bad username: %s", user);
+				pam_syslog(pamh, LOG_ERR,
+				    "Bad username: %s", user);
 			else
-				_log_err(LOG_ERR, "Bad username");
+				pam_syslog(pamh, LOG_ERR, "Bad username");
 			user = "UNKNOWN USER";
 			retval = PAM_USER_UNKNOWN;
 			goto out_save_retval;
 		}
 		if (on(UNIX_AUDIT))
-			_log_err(LOG_DEBUG, "Username obtained: %s", user);
+			pam_syslog(pamh, LOG_DEBUG,
+			    "Username obtained: %s", user);
 	} else {
 		D(("trouble reading username"));
 		user = "UNKNOWN USER";
@@ -76,7 +78,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 	}
 
 	/* if this user does not have a password... */
-	if (_unix_blankpasswd(user)) {
+	if (_unix_blankpasswd(pamh, user)) {
 		D(("user '%s' has blank password", user));
 		retval = PAM_SUCCESS;
 		goto out_save_retval;
@@ -88,7 +90,8 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 	if (retval != PAM_SUCCESS) {
 #if defined(PAM_CONV_AGAIN) && defined(PAM_INCOMPLETE)
 		if (retval == PAM_CONV_AGAIN) {
-			_log_err(LOG_CRIT, "Unable to identify password");
+			pam_syslog(pamh, LOG_CRIT,
+			    "Unable to identify password");
 		} else {
 			D(("conversation function is not ready yet"));
 			/*
@@ -123,14 +126,8 @@ out_save_retval:
 	    || *pass || off(UNIX_NOLOG_BLANK)
 #endif
 	    ) {
-		pam_item_t item;
-
-		if (pam_get_item(pamh, PAM_SERVICE, &item) != PAM_SUCCESS)
-			item = NULL;
-		service = item;
-		_log_err(retval == PAM_SUCCESS ? LOG_INFO : LOG_NOTICE,
-		    "%s: Authentication %s for %s from %s(uid=%u)",
-		    service ?: "UNKNOWN SERVICE",
+		pam_syslog(pamh, retval == PAM_SUCCESS ? LOG_INFO : LOG_NOTICE,
+		    "Authentication %s for %s from %s(uid=%u)",
 		    retval == PAM_SUCCESS ? "passed" : "failed", user,
 		    getlogin() ?: "", getuid());
 	}
@@ -154,7 +151,7 @@ PAM_EXTERN int pam_sm_setcred(pam_handle_t *pamh, int flags,
 
 	D(("called"));
 
-	if (!_set_ctrl(flags, argc, argv))
+	if (!_set_ctrl(pamh, flags, argc, argv))
 		return PAM_ABORT;
 
 	if (on(UNIX_LIKE_AUTH)) {

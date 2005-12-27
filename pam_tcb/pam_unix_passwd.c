@@ -38,22 +38,22 @@ extern int getrpcport(const char *host, unsigned long prognum,
 #define TRIES				3
 
 #define TMP_SUFFIX			".tmp"
-#define PASSWD_TMP_FILE			"/etc/passwd" TMP_SUFFIX
 
-static char *get_nis_server(void)
+static char *get_nis_server(pam_handle_t *pamh)
 {
 	char *master;
 	char *domain;
 	int port, result;
 
 	if ((result = yp_get_default_domain(&domain)) != 0) {
-		_log_err(LOG_WARNING, "Unable to get local yp domain: %s",
+		pam_syslog(pamh, LOG_WARNING,
+		    "Unable to get local yp domain: %s",
 		    yperr_string(result));
 		return NULL;
 	}
 
 	if ((result = yp_master(domain, "passwd.byname", &master)) != 0) {
-		_log_err(LOG_WARNING,
+		pam_syslog(pamh, LOG_WARNING,
 		    "Unable to find the master yp server: %s",
 		    yperr_string(result));
 		return NULL;
@@ -63,13 +63,14 @@ static char *get_nis_server(void)
 	    IPPROTO_UDP);
 
 	if (port == 0) {
-		_log_err(LOG_WARNING,
+		pam_syslog(pamh, LOG_WARNING,
 		    "yppasswdd not running on NIS master host");
 		return NULL;
 	}
 
 	if (port >= IPPORT_RESERVED) {
-		_log_err(LOG_WARNING, "yppasswdd running on illegal port");
+		pam_syslog(pamh, LOG_WARNING,
+		    "yppasswdd running on illegal port");
 		return NULL;
 	}
 
@@ -91,137 +92,54 @@ static int cpmod(const char *old, const char *new)
 	return 0;
 }
 
-static int update_passwd(const char *forwho, const char *towhat)
+static int update_file(pam_handle_t *pamh, const char *forwho,
+    const char *towhat, const char *towhat2, const char *file,
+    int (*filecheck)(int))
 {
-	FILE *newf, *oldf;
+	FILE *newf = NULL, *oldf = NULL;
+	char *tmp_file = NULL;
 	int fd;
 	int error;
 	int fieldnum, charnum, thisline, namelen;
-	int c;
+	int retval = PAM_AUTHTOK_ERR;
 
 	D(("called"));
 
-	fd = open(PASSWD_TMP_FILE, O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR);
-	if (fd < 0)
-		return PAM_AUTHTOK_ERR;
-	newf = fdopen(fd, "w");
-	if (!newf) {
-		close(fd);
-		unlink(PASSWD_TMP_FILE);
-		return PAM_AUTHTOK_ERR;
+	if (asprintf(&tmp_file, "%s%s", file, TMP_SUFFIX) < 0) {
+		pam_syslog(pamh, LOG_CRIT, "Out of memory");
+		return PAM_BUF_ERR;
 	}
 
-	oldf = fopen(PASSWD_FILE, "r");
-	if (!oldf || cpmod(PASSWD_FILE, PASSWD_TMP_FILE) != 0) {
-		fclose(newf);
-		if (oldf)
-			fclose(oldf);
-		unlink(PASSWD_TMP_FILE);
-		return PAM_AUTHTOK_ERR;
-	}
-
-	error = 0;
-	fieldnum = 0;
-	charnum = 0;
-	thisline = 1;
-	namelen = strlen(forwho);
-
-	/* This loop may look weird, but it doesn't allocate any buffers
-	 * and doesn't impose any limits on any field's length. */
-	while (1) {
-		c = fgetc(oldf);
-		if (c == EOF)
-			break;
-		/* does this line begin with forwho? */
-		if (fieldnum == 0 && charnum < namelen &&
-		    c != forwho[charnum])
-			thisline = 0;
-		if (fieldnum == 0 && charnum == namelen && c != ':')
-			thisline = 0;
-
-		if ((!thisline || fieldnum != 1) && putc(c, newf) == EOF) {
-			error = 1;
-			break;
-		}
-		if (c == ':') {
-			if (fieldnum == 0)
-				if (thisline && forwho[charnum])
-					thisline = 0;
-			if (fieldnum == 1 && thisline) {
-				if (fputs(towhat, newf) == EOF ||
-				    putc(':', newf) == EOF) {
-					error = 1;
-					break;
-				}
-			}
-			fieldnum++;
-		}
-		charnum++;
-		if (c == '\n') {
-			fieldnum = 0;
-			charnum = 0;
-			thisline = 1;
-		}
-	}
-
-	if (ferror(newf))
-		error = 1;
-	if (fclose(newf))
-		error = 1;
-	if (ferror(oldf))
-		error = 1;
-	if (fclose(oldf))
-		error = 1;
-	if (!error && rename(PASSWD_TMP_FILE, PASSWD_FILE))
-		error = 1;
-
-	if (error) {
-		_log_err(LOG_CRIT, "Failed to update %s: %s",
-		    PASSWD_FILE, strerror(errno));
-		unlink(PASSWD_TMP_FILE);
-		return PAM_AUTHTOK_ERR;
-	}
-
-	return PAM_SUCCESS;
-}
-
-static int update_shadow(const char *forwho, const char *towhat,
-    const char *file)
-{
-	char *tmpfile;
-	FILE *newf, *oldf;
-	int fd;
-	int error;
-	int fieldnum, charnum, thisline, namelen;
-	int c;
-
-	D(("called"));
-
-	if (asprintf(&tmpfile, "%s%s", file, TMP_SUFFIX) < 0)
-		return PAM_AUTHTOK_ERR;
-
-	fd = open(tmpfile, O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR);
+	fd = open(tmp_file, O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR);
 	if (fd < 0) {
-		free(tmpfile);
-		return PAM_AUTHTOK_ERR;
+		pam_syslog(pamh, LOG_CRIT,
+		    "Error opening %s: %m", tmp_file);
+		_pam_drop(tmp_file);
+		goto out_update_file;
 	}
-	newf = fdopen(fd, "w");
-	if (!newf) {
+	if ((newf = fdopen(fd, "w")) == NULL) {
+		pam_syslog(pamh, LOG_CRIT,
+		    "Error opening %s: %m", tmp_file);
 		close(fd);
-		unlink(tmpfile);
-		free(tmpfile);
-		return PAM_AUTHTOK_ERR;
+		goto out_update_file;
 	}
+	fd = -1;
 
-	oldf = fopen(file, "r");
-	if (!oldf ||
-	    tcb_is_suspect(fileno(oldf)) || cpmod(file, tmpfile) != 0) {
-		fclose(newf);
-		if (oldf)
-			fclose(oldf);
-		unlink(tmpfile);
-		free(tmpfile);
-		return PAM_AUTHTOK_ERR;
+	if ((oldf = fopen(file, "r")) == NULL) {
+		pam_syslog(pamh, LOG_CRIT,
+		    "Error opening %s: %m", file);
+		goto out_update_file;
+	}
+	if (filecheck && filecheck(fileno(oldf))) {
+		pam_syslog(pamh, LOG_CRIT,
+		    "File %s is not sane", file);
+		goto out_update_file;
+	}
+	if (cpmod(file, tmp_file) != 0) {
+		pam_syslog(pamh, LOG_CRIT,
+		    "Error setting ownership or permissions for %s: %m",
+		    tmp_file);
+		goto out_update_file;
 	}
 
 	error = 0;
@@ -233,7 +151,7 @@ static int update_shadow(const char *forwho, const char *towhat,
 	/* This loop may look weird, but it doesn't allocate any buffers
 	 * and doesn't impose any limits on any field's length. */
 	while (1) {
-		c = fgetc(oldf);
+		int c = fgetc(oldf);
 		if (c == EOF)
 			break;
 		/* does this line begin with forwho? */
@@ -243,8 +161,9 @@ static int update_shadow(const char *forwho, const char *towhat,
 		if (fieldnum == 0 && charnum == namelen && c != ':')
 			thisline = 0;
 
-		if ((!thisline || (fieldnum != 1 && fieldnum != 2)) &&
-		    putc(c, newf) == EOF) {
+		if ((!thisline
+		     || (fieldnum != 1 && (!towhat2 || fieldnum != 2)))
+		    && putc(c, newf) == EOF) {
 			error = 1;
 			break;
 		}
@@ -259,20 +178,12 @@ static int update_shadow(const char *forwho, const char *towhat,
 					break;
 				}
 			}
-			if (fieldnum == 2 && thisline) {
-				char *timestr;
-
-				if (asprintf(&timestr, "%d:",
-				    (int)(time(NULL) / (60 * 60 * 24))) < 0)
-					timestr = NULL;
-				if (!timestr ||
-				    fputs(timestr, newf) == EOF) {
-					if (timestr)
-						free(timestr);
+			if (fieldnum == 2 && towhat2 && thisline) {
+				if (fputs(towhat2, newf) == EOF ||
+				    putc(':', newf) == EOF) {
 					error = 1;
 					break;
 				}
-				free(timestr);
 			}
 			fieldnum++;
 		}
@@ -284,32 +195,87 @@ static int update_shadow(const char *forwho, const char *towhat,
 		}
 	}
 
-	if (ferror(newf))
-		error = 1;
-	if (fclose(newf))
-		error = 1;
-	if (ferror(oldf))
-		error = 1;
-	if (fclose(oldf))
-		error = 1;
-	if (!error && rename(tmpfile, file))
-		error = 1;
-
-	if (error)
-		unlink(tmpfile);
-	free(tmpfile);
-
-	if (error) {
-		_log_err(LOG_CRIT, "Failed to update %s: %s",
-		    file, strerror(errno));
-		return PAM_AUTHTOK_ERR;
+	if (error || ferror(newf)) {
+		pam_syslog(pamh, LOG_CRIT,
+		    "Error writing %s: %m", tmp_file);
+		goto out_update_file;
 	}
 
-	return PAM_SUCCESS;
+	if (ferror(oldf)) {
+		pam_syslog(pamh, LOG_CRIT,
+		    "Error reading %s: %m", file);
+		goto out_update_file;
+	}
+
+	if (fclose(newf))
+		error = 1;
+	newf = NULL;
+	if (error) {
+		pam_syslog(pamh, LOG_CRIT,
+		    "Error closing %s: %m", tmp_file);
+		goto out_update_file;
+	}
+
+	if (fclose(oldf))
+		error = 1;
+	oldf = NULL;
+	if (error) {
+		pam_syslog(pamh, LOG_CRIT,
+		    "Error closing %s: %m", file);
+		goto out_update_file;
+	}
+
+	if (rename(tmp_file, file)) {
+		pam_syslog(pamh, LOG_CRIT,
+		    "Error renaming %s to %s: %m",
+		    tmp_file, file);
+		goto out_update_file;
+	}
+	_pam_drop(tmp_file);
+
+	retval = PAM_SUCCESS;
+
+out_update_file:
+	if (tmp_file) {
+		unlink(tmp_file);
+		_pam_drop(tmp_file);
+	}
+	if (oldf)
+		fclose(oldf);
+	if (newf)
+		fclose(newf);
+
+	if (retval != PAM_SUCCESS) {
+		pam_syslog(pamh, LOG_ERR,
+		    "Failed to update %s", file);
+	}
+
+	return retval;
 }
 
-static int update_nis(unused const char *forwho, const char *fromwhat,
-    char *towhat, struct passwd *pw)
+static int update_passwd(pam_handle_t *pamh, const char *forwho,
+    const char *towhat)
+{
+	return update_file(pamh, forwho, towhat, NULL, PASSWD_FILE, NULL);
+}
+
+static int update_shadow(pam_handle_t *pamh, const char *forwho,
+    const char *towhat, const char *file)
+{
+	int retval;
+	char *timestr;
+
+	if (asprintf(&timestr, "%d", (int)(time(NULL) / (60 * 60 * 24))) < 0) {
+		pam_syslog(pamh, LOG_CRIT, "Out of memory");
+		return PAM_BUF_ERR;
+	}
+	retval = update_file(pamh, forwho, towhat, timestr, file, tcb_is_suspect);
+	_pam_drop(timestr);
+	return retval;
+}
+
+static int update_nis(pam_handle_t *pamh, unused const char *forwho,
+    const char *fromwhat, char *towhat, struct passwd *pw)
 {
 	struct timeval timeout;
 	struct yppasswd yppw;
@@ -321,7 +287,7 @@ static int update_nis(unused const char *forwho, const char *fromwhat,
 	D(("called"));
 
 	/* Make RPC call to NIS server */
-	master = get_nis_server();
+	master = get_nis_server(pamh);
 	if (!master)
 		return PAM_TRY_AGAIN;
 
@@ -355,12 +321,13 @@ static int update_nis(unused const char *forwho, const char *fromwhat,
 
 	status |= result;
 	if (status) {
-		_log_err(LOG_ERR, "Failed to change NIS password on %s%s%s",
+		pam_syslog(pamh, LOG_ERR,
+		    "Failed to change NIS password on %s%s%s",
 		    master,
 		    result ? ": " : "",
 		    result ? clnt_sperrno(result) : "");
 	}
-	_log_err(LOG_INFO, "Password%s changed on %s",
+	pam_syslog(pamh, LOG_INFO, "Password%s changed on %s",
 	    status ? " not" : "", master);
 
 	auth_destroy(client->cl_auth);
@@ -374,18 +341,24 @@ static int update_nis(unused const char *forwho, const char *fromwhat,
 
 static char *get_pwfile(const char *forwho)
 {
-	if (pam_unix_param.write_to == WRITE_TCB) {
-		char *file;
+	char *file;
+
+	switch (pam_unix_param.write_to) {
+	case WRITE_TCB:
 		if (asprintf(&file, TCB_FMT, forwho) < 0)
 			file = NULL;
 		return file;
-	}
-	if (pam_unix_param.write_to == WRITE_SHADOW)
+
+	case WRITE_SHADOW:
 		return strdup(SHADOW_FILE);
-	return strdup(PASSWD_FILE);
+
+	default:
+		return strdup(PASSWD_FILE);
+	}
 }
 
-static int do_setpass(const char *forwho, const char *fromwhat, char *towhat)
+static int do_setpass(pam_handle_t *pamh, const char *forwho,
+    const char *fromwhat, char *towhat)
 {
 	struct passwd *pw = NULL;
 	char *file;
@@ -400,11 +373,13 @@ static int do_setpass(const char *forwho, const char *fromwhat, char *towhat)
 		return PAM_AUTHTOK_ERR;
 
 	if (pam_unix_param.write_to == WRITE_NIS)
-		return update_nis(forwho, fromwhat, towhat, pw);
+		return update_nis(pamh, forwho, fromwhat, towhat, pw);
 
 	file = get_pwfile(forwho);
-	if (!file)
+	if (!file) {
+		pam_syslog(pamh, LOG_CRIT, "Out of memory");
 		return PAM_BUF_ERR;
+	}
 
 	need_passwd = (pam_unix_param.write_to == WRITE_SHADOW ||
 	    pam_unix_param.write_to == WRITE_TCB) &&
@@ -434,15 +409,15 @@ static int do_setpass(const char *forwho, const char *fromwhat, char *towhat)
 		}
 	}
 	if (pam_unix_param.write_to == WRITE_PASSWD)
-		retval = update_passwd(forwho, towhat);
+		retval = update_passwd(pamh, forwho, towhat);
 	else {
-		retval = update_shadow(forwho, towhat, file);
+		retval = update_shadow(pamh, forwho, towhat, file);
 		if (pam_unix_param.write_to == WRITE_TCB) {
 			ulckpwdf_tcb();
 			tcb_gain_priv();
 		}
 		if (retval == PAM_SUCCESS && need_passwd)
-			retval = update_passwd(forwho, "x");
+			retval = update_passwd(pamh, forwho, "x");
 	}
 
 out_ulckpwdf:
@@ -508,9 +483,11 @@ static int unix_approve_pass(pam_handle_t *pamh,
 
 	if (!newpass || (oldpass && !strcmp(oldpass, newpass))) {
 		if (on(UNIX_DEBUG))
-			_log_err(LOG_DEBUG, "Bad new authentication token");
-		_make_remark(pamh, PAM_ERROR_MSG,
-		    newpass ? MESSAGE_PASS_SAME : MESSAGE_PASS_NONE);
+			pam_syslog(pamh, LOG_DEBUG,
+			    "Bad new authentication token");
+		if (off(UNIX__QUIET))
+			pam_error(pamh, "%s",
+			    newpass ? MESSAGE_PASS_SAME : MESSAGE_PASS_NONE);
 		return PAM_AUTHTOK_ERR;
 	}
 
@@ -521,17 +498,16 @@ static int unix_prelim(pam_handle_t *pamh, const char *user)
 {
 	int lctrl[OPT_SIZE];
 	char *greeting;
-	pam_item_t item;
-	const char *oldpass, *service;
+	const char *oldpass;
 	int retval = PAM_SUCCESS;
 
 	D(("called"));
 
-	if (_unix_blankpasswd(user))
+	if (_unix_blankpasswd(pamh, user))
 		goto out;
 
 	if (asprintf(&greeting, MESSAGE_CHANGING, user) < 0) {
-		_log_err(LOG_CRIT, "Out of memory");
+		pam_syslog(pamh, LOG_CRIT, "Out of memory");
 		return PAM_BUF_ERR;
 	}
 
@@ -546,7 +522,7 @@ static int unix_prelim(pam_handle_t *pamh, const char *user)
 		    sizeof(pam_unix_param.ctrl));
 
 		if (retval != PAM_SUCCESS) {
-			_log_err(LOG_NOTICE,
+			pam_syslog(pamh, LOG_NOTICE,
 			    "Current password not obtained");
 			return retval;
 		}
@@ -567,13 +543,14 @@ static int unix_prelim(pam_handle_t *pamh, const char *user)
 
 	retval = pam_set_item(pamh, PAM_OLDAUTHTOK, (const void *)oldpass);
 	if (retval != PAM_SUCCESS)
-		_log_err(LOG_CRIT, "Failed to set PAM_OLDAUTHTOK");
+		pam_syslog(pamh, LOG_CRIT, "Failed to set PAM_OLDAUTHTOK");
 
 	retval = unix_verify_shadow(user);
 	if (retval == PAM_AUTHTOK_ERR) {
-		if (off(UNIX__IAMROOT))
-			_make_remark(pamh, PAM_ERROR_MSG, MESSAGE_TOOSOON);
-		else
+		if (off(UNIX__IAMROOT)) {
+			if (off(UNIX__QUIET))
+				pam_error(pamh, "%s", MESSAGE_TOOSOON);
+		} else
 			retval = PAM_SUCCESS;
 	}
 
@@ -586,13 +563,9 @@ out:
 	if (on(UNIX__IAMROOT))
 		return retval;
 
-	if (pam_get_item(pamh, PAM_SERVICE, &item) != PAM_SUCCESS)
-		item = NULL;
-	service = item;
-	_log_err(retval == PAM_SUCCESS ? LOG_INFO : LOG_NOTICE,
-	    "%s: Authentication %s for %s from %s(uid=%u)"
+	pam_syslog(pamh, retval == PAM_SUCCESS ? LOG_INFO : LOG_NOTICE,
+	    "Authentication %s for %s from %s(uid=%u)"
 	    ", for password management",
-	    service ?: "UNKNOWN SERVICE",
 	    retval == PAM_SUCCESS ? "passed" : "failed", user,
 	    getlogin() ?: "", getuid());
 
@@ -611,11 +584,10 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 	const char *user, *oldpass, *newpass;
 	/* </DO NOT free() THESE> */
 	char *newhash;
-	const char *service;
 
 	D(("called"));
 
-	if (!_set_ctrl(flags, argc, argv))
+	if (!_set_ctrl(pamh, flags, argc, argv))
 		return PAM_ABORT;
 
 	/* get the username */
@@ -629,26 +601,28 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 		 */
 		if (!user || !isalpha((int)(unsigned char)*user)) {
 			if (user && on(UNIX_AUDIT))
-				_log_err(LOG_ERR, "Bad username: %s", user);
+				pam_syslog(pamh, LOG_ERR,
+				    "Bad username: %s", user);
 			else
-				_log_err(LOG_ERR, "Bad username");
+				pam_syslog(pamh, LOG_ERR, "Bad username");
 			return PAM_USER_UNKNOWN;
 		}
 		if (on(UNIX_AUDIT))
-			_log_err(LOG_DEBUG, "Username obtained: %s", user);
+			pam_syslog(pamh, LOG_DEBUG,
+			    "Username obtained: %s", user);
 	} else {
 		if (on(UNIX_DEBUG))
-			_log_err(LOG_DEBUG, "Unable to identify user");
+			pam_syslog(pamh, LOG_DEBUG, "Unable to identify user");
 		return retval;
 	}
 
-	if (!_unix_user_in_db(user, oldprefix)) {
-		_log_err(LOG_DEBUG,
+	if (!_unix_user_in_db(pamh, user, oldprefix)) {
+		pam_syslog(pamh, LOG_DEBUG,
 		    "Unable to find user in the selected database");
 		return PAM_USER_UNKNOWN;
 	}
 	if (*oldprefix == '*' && strncmp(oldprefix, "*NP*", 4)) {
-		_log_err(LOG_DEBUG,
+		pam_syslog(pamh, LOG_DEBUG,
 		    "User \"%s\" does not have a modifiable password", user);
 		return PAM_AUTHTOK_ERR;
 	}
@@ -683,7 +657,7 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 	D(("oldpass=[%s]", oldpass));
 
 	if (retval != PAM_SUCCESS) {
-		_log_err(LOG_NOTICE, "User not authenticated");
+		pam_syslog(pamh, LOG_NOTICE, "User not authenticated");
 		return retval;
 	}
 
@@ -691,7 +665,7 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 	retval = unix_verify_shadow(user);
 	if (retval != PAM_SUCCESS) {
 		if (retval == PAM_ACCT_EXPIRED)
-			_log_err(LOG_NOTICE, "Account expired");
+			pam_syslog(pamh, LOG_NOTICE, "Account expired");
 		return retval;
 	}
 
@@ -717,7 +691,7 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 
 		if (retval != PAM_SUCCESS) {
 			if (on(UNIX_DEBUG)) {
-				_log_err(LOG_ERR,
+				pam_syslog(pamh, LOG_ERR,
 				    "New password not obtained");
 			}
 			return retval;
@@ -734,7 +708,7 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 	}
 
 	if (retval != PAM_SUCCESS) {
-		_log_err(LOG_NOTICE, "New password not acceptable");
+		pam_syslog(pamh, LOG_NOTICE, "New password not acceptable");
 		_pam_overwrite((char *)newpass);
 		_pam_overwrite((char *)oldpass);
 		return retval;
@@ -746,28 +720,22 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 	 */
 
 	/* First we hash the new password and forget the plaintext. */
-	newhash = do_crypt(newpass);
+	newhash = do_crypt(pamh, newpass);
 	_pam_overwrite((char *)newpass);
 
 	D(("password processed"));
 
 	/* update the password database(s) -- race conditions? */
 	if (newhash)
-		retval = do_setpass(user, oldpass, newhash);
+		retval = do_setpass(pamh, user, oldpass, newhash);
 	else
 		retval = PAM_BUF_ERR;
 	_pam_overwrite((char *)oldpass);
 	_pam_delete(newhash);
 
 	if (retval == PAM_SUCCESS) {
-		pam_item_t item;
-
-		if (pam_get_item(pamh, PAM_SERVICE, &item) != PAM_SUCCESS)
-			item = NULL;
-		service = item;
-		_log_err(LOG_INFO,
-		    "%s: Password for %s changed by %s(uid=%u)",
-		    service ?: "UNKNOWN SERVICE",
+		pam_syslog(pamh, LOG_INFO,
+		    "Password for %s changed by %s(uid=%u)",
 		    user, getlogin() ?: "", getuid());
 	}
 

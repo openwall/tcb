@@ -4,6 +4,14 @@
 #include <pwd.h>
 #include <shadow.h>
 
+#include "attribute.h"
+
+#ifdef __LINUX_PAM__
+# include <security/pam_ext.h>
+#else
+# include "compat.h"
+#endif
+
 #define PASSWD_FILE			"/etc/passwd"
 #define SHADOW_FILE			"/etc/shadow"
 
@@ -98,7 +106,7 @@ enum {
 };
 
 struct cmdline_opts {
-	char *optname;
+	const char *optname;
 	const char *value, *orig;
 };
 
@@ -159,28 +167,20 @@ typedef const void *pam_data_t;
 typedef void *pam_data_t;
 #endif
 
-extern int _unix_user_in_db(const char *, char *);
+extern int _unix_user_in_db(pam_handle_t *, const char *, char *);
 
-typedef int (*cb_func) (const void *);
-extern int _unix_fork(cb_func, const void *);
+typedef int (*cb_func) (pam_handle_t *, const void *);
+extern int _unix_fork(pam_handle_t *, cb_func, const void *);
 
-extern void _log_err(int err, const char *format, ...)
-#if defined(__GNUC__) && __GNUC__ >= 2 && (__GNUC__ > 2 || __GNUC_MINOR__ >= 5) && !__STRICT_ANSI__
-	__attribute__ ((format(printf, 2, 3)));
-#else
-	;
-#endif
-
-extern int _make_remark(pam_handle_t * pamh, int type, const char *text);
-extern int _set_ctrl(int flags, int argc, const char **argv);
+extern int _set_ctrl(pam_handle_t *, int flags, int argc, const char **argv);
 extern int _unix_comesfromsource(const char *user, int files, int nis);
-extern int _unix_blankpasswd(const char *user);
+extern int _unix_blankpasswd(pam_handle_t *, const char *user);
 extern int _unix_verify_password(pam_handle_t *, const char *, const char *);
-extern int _unix_read_password(pam_handle_t *pamh, const char *comment,
+extern int _unix_read_password(pam_handle_t *, const char *comment,
     const char *prompt1, const char *prompt2, const char *data_name,
     const char **pass);
 extern int unix_getspnam(struct spwd **, const struct passwd *);
-extern char *crypt_wrapper(const char *, const char *);
-extern char *do_crypt(const char *);
+extern char *crypt_wrapper(pam_handle_t *, const char *, const char *);
+extern char *do_crypt(pam_handle_t *, const char *);
 
 #endif

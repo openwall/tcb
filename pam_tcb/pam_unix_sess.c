@@ -17,31 +17,24 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags,
     int argc, const char **argv)
 {
 	pam_item_t item;
-	const char *user, *service;
+	const char *user;
 	int retval;
 
 	D(("called"));
 
-	if (!_set_ctrl(flags, argc, argv))
+	if (!_set_ctrl(pamh, flags, argc, argv))
 		return PAM_ABORT;
 
 	retval = pam_get_item(pamh, PAM_USER, &item);
 	user = item;
 	if (retval != PAM_SUCCESS || !user) {
-		_log_err(LOG_ALERT, "Unable to identify user");
+		pam_syslog(pamh, LOG_ALERT, "Unable to identify user");
 		return PAM_SESSION_ERR;	/* How did we get authenticated with
 					   no username?! */
 	}
 
-	retval = pam_get_item(pamh, PAM_SERVICE, &item);
-	service = item;
-	if (retval != PAM_SUCCESS || !service) {
-		_log_err(LOG_ALERT, "Unable to identify service");
-		return PAM_SESSION_ERR;
-	}
-
-	_log_err(LOG_INFO, "%s: Session opened for %s by %s(uid=%u)",
-	    service, user, getlogin() ?: "", getuid());
+	pam_syslog(pamh, LOG_INFO, "Session opened for %s by %s(uid=%u)",
+	    user, getlogin() ?: "", getuid());
 
 	return PAM_SUCCESS;
 }
@@ -53,30 +46,23 @@ PAM_EXTERN int pam_sm_close_session(pam_handle_t *pamh, int flags,
     int argc, const char **argv)
 {
 	pam_item_t item;
-	const char *user, *service;
+	const char *user;
 	int retval;
 
 	D(("called"));
 
-	if (!_set_ctrl(flags, argc, argv))
+	if (!_set_ctrl(pamh, flags, argc, argv))
 		return PAM_ABORT;
 
 	retval = pam_get_item(pamh, PAM_USER, &item);
 	user = item;
 	if (retval != PAM_SUCCESS || !user) {
-		_log_err(LOG_ALERT, "Unable to identify user");
+		pam_syslog(pamh, LOG_ALERT, "Unable to identify user");
 		return PAM_SESSION_ERR;	/* How did we get authenticated with
 					   no username?! */
 	}
 
-	retval = pam_get_item(pamh, PAM_SERVICE, &item);
-	service = item;
-	if (retval != PAM_SUCCESS || !service) {
-		_log_err(LOG_ALERT, "Unable to identify service");
-		return PAM_SESSION_ERR;
-	}
-
-	_log_err(LOG_INFO, "%s: Session closed for %s", service, user);
+	pam_syslog(pamh, LOG_INFO, "Session closed for %s", user);
 
 	return PAM_SUCCESS;
 }
