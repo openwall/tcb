@@ -2,7 +2,7 @@
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
-Version: 0.9.9
+Version: 1.0
 Release: owl1
 License: BSD or GPL
 Group: System Environment/Base
@@ -89,6 +89,13 @@ rmdir /sbin/chkpwd.d
 %_libdir/libtcb.so
 
 %changelog
+* Wed Dec 28 2005 Dmitry V. Levin <ldv-at-owl.openwall.com> 1.0-owl1
+- Fixed potential NULL dereferences in the PAM module password handling.
+- Removed user prompt override in calls to pam_get_user.
+- Implemented OpenPAM build support.
+- Updated logging code to use pam_syslog.
+- Updated conversation code to use pam_prompt.
+
 * Tue Aug 23 2005 Dmitry V. Levin <ldv-at-owl.openwall.com> 0.9.9-owl1
 - Restricted list of global symbols exported by the library,
 NSS and PAM modules.
