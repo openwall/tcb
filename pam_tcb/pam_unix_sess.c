@@ -1,11 +1,12 @@
 #include <unistd.h>
+#include <syslog.h>
 
 #include <security/_pam_macros.h>
 #define PAM_SM_SESSION
-#ifndef LINUX_PAM
-#include <security/pam_appl.h>
-#endif
 #include <security/pam_modules.h>
+#if !defined(__LIBPAM_VERSION) && !defined(__LINUX_PAM__)
+# include <security/pam_appl.h>
+#endif
 
 #include "support.h"
 
@@ -15,7 +16,7 @@
 PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags,
     int argc, const char **argv)
 {
-	const void *item;
+	pam_item_t item;
 	const char *user, *service;
 	int retval;
 
@@ -51,7 +52,7 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags,
 PAM_EXTERN int pam_sm_close_session(pam_handle_t *pamh, int flags,
     int argc, const char **argv)
 {
-	const void *item;
+	pam_item_t item;
 	const char *user, *service;
 	int retval;
 

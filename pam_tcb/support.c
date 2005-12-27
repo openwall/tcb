@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <syslog.h>
 #include <limits.h>
 #include <errno.h>
 #include <signal.h>
@@ -15,10 +16,13 @@
 #include <rpcsvc/ypclnt.h>
 
 #include <security/_pam_macros.h>
-#ifndef LINUX_PAM
-#include <security/pam_appl.h>
-#endif
 #include <security/pam_modules.h>
+#if !defined(__LIBPAM_VERSION) && !defined(__LINUX_PAM__)
+# include <security/pam_appl.h>
+# ifndef PAM_AUTHTOK_RECOVER_ERR
+#  define PAM_AUTHTOK_RECOVER_ERR PAM_AUTHTOK_RECOVERY_ERR
+# endif
+#endif
 
 #include "tcb.h"
 #include "_tcb.h"
@@ -66,7 +70,7 @@ void _log_err(int priority, const char *format, ...)
 static int converse(pam_handle_t * pamh, int num_msg,
     const struct pam_message **msg, struct pam_response **resp)
 {
-	const void *item;
+	pam_item_t item;
 	struct pam_conv *conv;
 	int retval;
 
@@ -83,7 +87,11 @@ static int converse(pam_handle_t * pamh, int num_msg,
 			_log_err(LOG_DEBUG, "Conversation failure: %s",
 			    pam_strerror(pamh, retval));
 		}
-	} else if (retval != PAM_CONV_AGAIN) {
+	} else
+#if defined(PAM_CONV_AGAIN)
+	if (retval != PAM_CONV_AGAIN)
+#endif
+	{
 		_log_err(LOG_ERR, "Failed to obtain conversation function: %s",
 		    pam_strerror(pamh, retval));
 	}
@@ -677,7 +685,7 @@ static void failures_cleanup(pam_handle_t *pamh, void *data, int error_status)
 		if (!quiet && !error_status) {
 			/* log the number of authentication failures */
 			if (failures->count > 1) {
-				const void *item;
+				pam_item_t item;
 				const char *service;
 
 				if (pam_get_item(pamh, PAM_SERVICE, &item)
@@ -719,7 +727,7 @@ static int do_record_failure(pam_handle_t *pamh, const char *user, int retval)
 		new = (struct failed_auth *)malloc(sizeof(struct failed_auth));
 
 		if (new) {
-			const void *item;
+			pam_data_t item;
 			const struct failed_auth *old;
 
 			/* possible strdup() failures; nothing we can do;
@@ -740,6 +748,7 @@ static int do_record_failure(pam_handle_t *pamh, const char *user, int retval)
 				if (new->count >= TRIES)
 					retval = PAM_MAXTRIES;
 			} else {
+				pam_item_t item;
 				const char *service;
 
 				if (pam_get_item(pamh, PAM_SERVICE, &item)
@@ -799,7 +808,7 @@ int _unix_read_password(pam_handle_t *pamh,
     const char *comment, const char *prompt1, const char *prompt2,
     const char *data_name, const char **pass)
 {
-	const void *item;
+	pam_item_t item;
 	char *token;
 	int authtok_flag;
 	int retval;

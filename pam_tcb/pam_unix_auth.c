@@ -1,12 +1,13 @@
 #include <ctype.h>
 #include <unistd.h>
+#include <syslog.h>
 
 #include <security/_pam_macros.h>
 #define PAM_SM_AUTH
-#ifndef LINUX_PAM
-#include <security/pam_appl.h>
-#endif
 #include <security/pam_modules.h>
+#if !defined(__LIBPAM_VERSION) && !defined(__LINUX_PAM__)
+# include <security/pam_appl.h>
+#endif
 
 #include "attribute.h"
 #include "support.h"
@@ -60,6 +61,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 	} else {
 		D(("trouble reading username"));
 		user = "UNKNOWN USER";
+#if defined(PAM_CONV_AGAIN) && defined(PAM_INCOMPLETE)
 		if (retval == PAM_CONV_AGAIN) {
 			D(("pam_get_user: conv() function is not ready yet"));
 			/*
@@ -69,6 +71,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 			 */
 			retval = PAM_INCOMPLETE;
 		}
+#endif /* defined(PAM_CONV_AGAIN) && defined(PAM_INCOMPLETE) */
 		goto out_save_retval;
 	}
 
@@ -83,6 +86,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 	    DATA_AUTHTOK, &pass);
 
 	if (retval != PAM_SUCCESS) {
+#if defined(PAM_CONV_AGAIN) && defined(PAM_INCOMPLETE)
 		if (retval == PAM_CONV_AGAIN) {
 			_log_err(LOG_CRIT, "Unable to identify password");
 		} else {
@@ -94,6 +98,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 			 */
 			retval = PAM_INCOMPLETE;
 		}
+#endif /* defined(PAM_CONV_AGAIN) && defined(PAM_INCOMPLETE) */
 		pass = NULL;
 		return retval;
 	}
@@ -118,7 +123,7 @@ out_save_retval:
 	    || *pass || off(UNIX_NOLOG_BLANK)
 #endif
 	    ) {
-		const void *item;
+		pam_item_t item;
 
 		if (pam_get_item(pamh, PAM_SERVICE, &item) != PAM_SUCCESS)
 			item = NULL;
@@ -153,7 +158,7 @@ PAM_EXTERN int pam_sm_setcred(pam_handle_t *pamh, int flags,
 		return PAM_ABORT;
 
 	if (on(UNIX_LIKE_AUTH)) {
-		const void *item;
+		pam_data_t item;
 
 		D(("recovering return code from auth call"));
 		pam_get_data(pamh, DATA_AUTH_RETVAL, &item);

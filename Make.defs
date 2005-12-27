@@ -3,7 +3,7 @@ DBGFLAG = #-ggdb
 ifndef CFLAGS
 CFLAGS = -O2
 endif
-CFLAGS += $(DBGFLAG) -I../include -Wall -DLINUX_PAM
+CFLAGS += $(DBGFLAG) -I../include -Wall
 #CFLAGS += -DFAIL_RECORD
 LDFLAGS += $(DBGFLAG) -L../libs
 

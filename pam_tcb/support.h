@@ -147,6 +147,18 @@ struct unix_verify_password_param {
 	_pam_drop(xx); \
 }
 
+#if defined(__LIBPAM_VERSION) || defined(__LINUX_PAM__) || defined(_OPENPAM)
+typedef const void *pam_item_t;
+#else
+typedef void *pam_item_t;
+#endif
+
+#if defined(__LIBPAM_VERSION) || defined(__LINUX_PAM__)
+typedef const void *pam_data_t;
+#else
+typedef void *pam_data_t;
+#endif
+
 extern int _unix_user_in_db(const char *, char *);
 
 typedef int (*cb_func) (const void *);

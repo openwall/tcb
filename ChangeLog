@@ -1,3 +1,33 @@
+2005-09-12  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	Implement OpenPAM build support.
+
+	* Make.defs (CFLAGS): Remove -DLINUX_PAM.
+	* pam_tcb/pam_unix_acct.c: Include <syslog.h>.
+	Include <security/pam_appl.h> if and only if
+	[!__LIBPAM_VERSION && !__LINUX_PAM__].
+	* pam_tcb/pam_unix_auth.c: Likewise.
+	* pam_tcb/pam_unix_passwd.c: Likewise.
+	* pam_tcb/pam_unix_sess.c: Likewise.
+	* pam_tcb/support.c: Likewise.
+
+	* pam_tcb/support.h: Define pam_item_t and pam_data_t.
+	* pam_tcb/pam_unix_acct.c (pam_sm_acct_mgmt): Change type of
+	item variable.
+	* pam_tcb/pam_unix_auth.c (pam_sm_authenticate, pam_sm_setcred):
+	Likewise.
+	* pam_tcb/pam_unix_passwd.c (unix_prelim, pam_sm_chauthtok):
+	Likewise.
+	* pam_tcb/pam_unix_sess.c (pam_sm_open_session,
+	pam_sm_close_session): Likewise.
+	* pam_tcb/support.c (converse, failures_cleanup,
+	do_record_failure, _unix_read_password): Likewise.
+
+	* pam_tcb/pam_unix_auth.c (pam_sm_authenticate): Protect code
+	which uses PAM_CONV_AGAIN and PAM_INCOMPLETE with appropriate
+	ifdefs.
+	* pam_tcb/support.c (converse): Likewise.
+
 2005-09-11  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	* pam_tcb/pam_unix_auth.c (pam_sm_authenticate): Do not override

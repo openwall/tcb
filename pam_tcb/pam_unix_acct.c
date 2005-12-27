@@ -1,16 +1,17 @@
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <unistd.h>
+#include <syslog.h>
 #include <time.h>
 #include <pwd.h>
 #include <shadow.h>
 
 #include <security/_pam_macros.h>
 #define PAM_SM_ACCOUNT
-#ifndef LINUX_PAM
-#include <security/pam_appl.h>
-#endif
 #include <security/pam_modules.h>
+#if !defined(__LIBPAM_VERSION) && !defined(__LINUX_PAM__)
+# include <security/pam_appl.h>
+#endif
 
 #include "support.h"
 
@@ -80,7 +81,7 @@ static int acct_shadow(const char *user)
 PAM_EXTERN int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags,
     int argc, const char **argv)
 {
-	const void *item;
+	pam_item_t item;
 	const char *user;
 	int retval, daysleft = 0;
 	struct passwd *pw;

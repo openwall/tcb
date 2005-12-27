@@ -4,6 +4,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <syslog.h>
 #include <pwd.h>
 #include <shadow.h>
 #include <errno.h>
@@ -15,10 +16,10 @@
 
 #include <security/_pam_macros.h>
 #define PAM_SM_PASSWORD
-#ifndef LINUX_PAM
-#include <security/pam_appl.h>
-#endif
 #include <security/pam_modules.h>
+#if !defined(__LIBPAM_VERSION) && !defined(__LINUX_PAM__)
+# include <security/pam_appl.h>
+#endif
 
 #include "tcb.h"
 
@@ -520,7 +521,7 @@ static int unix_prelim(pam_handle_t *pamh, const char *user)
 {
 	int lctrl[OPT_SIZE];
 	char *greeting;
-	const void *item;
+	pam_item_t item;
 	const char *oldpass, *service;
 	int retval = PAM_SUCCESS;
 
@@ -607,7 +608,6 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 	int retval, retry;
 	char oldprefix[HASH_PREFIX_SIZE];
 	/* <DO NOT free() THESE> */
-	const void *item;
 	const char *user, *oldpass, *newpass;
 	/* </DO NOT free() THESE> */
 	char *newhash;
@@ -666,15 +666,20 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 	 * previous call to this function).
 	 */
 	if (off(UNIX_NOT_SET_PASS)) {
+		pam_item_t item;
+
 		retval = pam_get_item(pamh, PAM_OLDAUTHTOK, &item);
+		oldpass = item;
 	} else {
+		pam_data_t item;
+
 		retval = pam_get_data(pamh, DATA_OLD_AUTHTOK, &item);
 		if (retval == PAM_NO_MODULE_DATA) {
 			retval = PAM_SUCCESS;
 			item = NULL;
 		}
+		oldpass = item;
 	}
-	oldpass = item;
 	D(("oldpass=[%s]", oldpass));
 
 	if (retval != PAM_SUCCESS) {
@@ -755,6 +760,8 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 	_pam_delete(newhash);
 
 	if (retval == PAM_SUCCESS) {
+		pam_item_t item;
+
 		if (pam_get_item(pamh, PAM_SERVICE, &item) != PAM_SUCCESS)
 			item = NULL;
 		service = item;
