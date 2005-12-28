@@ -1,8 +1,10 @@
-2005-12-27  Dmitry V. Levin  <ldv at owl.openwall.com>
-
-	* LICENSE: Updated copyrights for 2004 and 2005 years.
+2005-12-28  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	* tcb.spec: 1.0.
+	* LICENSE: Updated copyrights for 2004 and 2005 years.
+
+	* pam_tcb/pam_unix_passwd.c (pam_sm_chauthtok): Bump syslog
+	priorities of three error messages.
 
 2005-09-26  Dmitry V. Levin  <ldv at owl.openwall.com>
 

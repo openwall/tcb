@@ -611,18 +611,17 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 			pam_syslog(pamh, LOG_DEBUG,
 			    "Username obtained: %s", user);
 	} else {
-		if (on(UNIX_DEBUG))
-			pam_syslog(pamh, LOG_DEBUG, "Unable to identify user");
+		pam_syslog(pamh, LOG_ALERT, "Unable to identify user");
 		return retval;
 	}
 
 	if (!_unix_user_in_db(pamh, user, oldprefix)) {
-		pam_syslog(pamh, LOG_DEBUG,
+		pam_syslog(pamh, LOG_NOTICE,
 		    "Unable to find user in the selected database");
 		return PAM_USER_UNKNOWN;
 	}
 	if (*oldprefix == '*' && strncmp(oldprefix, "*NP*", 4)) {
-		pam_syslog(pamh, LOG_DEBUG,
+		pam_syslog(pamh, LOG_NOTICE,
 		    "User \"%s\" does not have a modifiable password", user);
 		return PAM_AUTHTOK_ERR;
 	}
