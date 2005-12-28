@@ -64,62 +64,62 @@ pam_syslog(pam_handle_t *pamh, int priority, const char *fmt, ...)
 int TCB_FORMAT((printf, 4, 5)) TCB_NONNULL((1,4))
 pam_prompt(pam_handle_t *pamh, int style, char **response, const char *fmt, ...)
 {
-  struct pam_message msg;
-  struct pam_response *pam_resp = NULL;
-  const struct pam_message *pmsg;
-  const struct pam_conv *conv;
-  const void *convp;
-  char *msgbuf;
-  va_list args;
-  int retval;
+	struct pam_message msg;
+	struct pam_response *pam_resp = NULL;
+	const struct pam_message *pmsg;
+	const struct pam_conv *conv;
+	const void *convp;
+	char   *msgbuf;
+	va_list args;
+	int     retval;
 
-  if (response)
-    *response = NULL;
+	if (response)
+		*response = NULL;
 
-  retval = pam_get_item (pamh, PAM_CONV, &convp);
-  if (retval != PAM_SUCCESS)
-    return retval;
-  conv = convp;
-  if (conv == NULL || conv->conv == NULL)
-    {
-      pam_syslog (pamh, LOG_ERR, "no conversation function");
-      return PAM_SYSTEM_ERR;
-    }
+	retval = pam_get_item(pamh, PAM_CONV, &convp);
+	if (retval != PAM_SUCCESS)
+		return retval;
+	conv = convp;
+	if (conv == NULL || conv->conv == NULL)
+	{
+		pam_syslog(pamh, LOG_ERR, "no conversation function");
+		return PAM_SYSTEM_ERR;
+	}
 
-  va_start (args, fmt);
-  if (vasprintf (&msgbuf, fmt, args) < 0)
-    {
-      pam_syslog (pamh, LOG_ERR, "asprintf: %m");
-      retval = PAM_BUF_ERR;
-    }
-  va_end (args);
+	va_start(args, fmt);
+	if (vasprintf(&msgbuf, fmt, args) < 0)
+	{
+		pam_syslog(pamh, LOG_ERR, "asprintf: %m");
+		retval = PAM_BUF_ERR;
+	}
+	va_end(args);
 
-  if (retval != PAM_SUCCESS)
-    return retval;
+	if (retval != PAM_SUCCESS)
+		return retval;
 
-  msg.msg_style = style;
-  msg.msg = msgbuf;
-  pmsg = &msg;
+	msg.msg_style = style;
+	msg.msg = msgbuf;
+	pmsg = &msg;
 
-  retval = conv->conv (1, &pmsg, &pam_resp, conv->appdata_ptr);
-  if (retval != PAM_SUCCESS && pam_resp != NULL)
-    pam_syslog(pamh, LOG_WARNING,
-      "unexpected response from failed conversation function");
-  if (response)
-    *response = pam_resp == NULL ? NULL : pam_resp->resp;
-  else if (pam_resp && pam_resp->resp)
-    {
-      _pam_overwrite (pam_resp->resp);
-      _pam_drop (pam_resp->resp);
-    }
-  _pam_overwrite (msgbuf);
-  _pam_drop (pam_resp);
-  free (msgbuf);
-  if (retval != PAM_SUCCESS)
-    pam_syslog (pamh, LOG_ERR, "Conversation failure: %s",
-		pam_strerror(pamh, retval));
+	retval = conv->conv(1, &pmsg, &pam_resp, conv->appdata_ptr);
+	if (retval != PAM_SUCCESS && pam_resp != NULL)
+		pam_syslog(pamh, LOG_WARNING,
+			   "unexpected response from failed conversation function");
+	if (response)
+		*response = pam_resp == NULL ? NULL : pam_resp->resp;
+	else if (pam_resp && pam_resp->resp)
+	{
+		_pam_overwrite(pam_resp->resp);
+		_pam_drop(pam_resp->resp);
+	}
+	_pam_overwrite(msgbuf);
+	_pam_drop(pam_resp);
+	free(msgbuf);
+	if (retval != PAM_SUCCESS)
+		pam_syslog(pamh, LOG_ERR, "Conversation failure: %s",
+			   pam_strerror(pamh, retval));
 
-  return retval;
+	return retval;
 }
 #endif /* !_OPENPAM */
 #endif /* !__LINUX_PAM__ */
