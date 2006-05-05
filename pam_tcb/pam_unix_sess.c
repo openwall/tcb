@@ -19,6 +19,7 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags,
 	pam_item_t item;
 	const char *user;
 	int retval;
+	struct passwd *pw;
 
 	D(("called"));
 
@@ -31,6 +32,13 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags,
 		pam_syslog(pamh, LOG_ALERT, "Unable to identify user");
 		return PAM_SESSION_ERR;	/* How did we get authenticated with
 					   no username?! */
+	}
+
+	pw = getpwnam(user);
+	endpwent();
+	if (!pw) {
+		pam_syslog(pamh, LOG_ALERT, "Unable to identify user");
+		return PAM_SESSION_ERR;
 	}
 
 	pam_syslog(pamh, LOG_INFO, "Session opened for %s by %s(uid=%u)",
