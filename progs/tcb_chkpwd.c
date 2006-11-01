@@ -25,6 +25,12 @@ IO_LOOP(write_loop, write, const)
 #define AUTH_PASSED			TCB_MAGIC
 #define AUTH_FAILED			1
 
+static void zeroise(char *str)
+{
+	while (*str)
+		*(str++) = '\0';
+}
+
 static int unix_verify_password(const char *user, const char *pass, int nullok)
 {
 	struct passwd *pw;
@@ -67,17 +73,23 @@ static int unix_verify_password(const char *user, const char *pass, int nullok)
 		return AUTH_FAILED;
 	}
 
-	if (!*stored_hash)
+	if (!*stored_hash) {
+		free(stored_hash);
 		return nullok ? AUTH_PASSED : AUTH_FAILED;
+	}
 
 	/* the moment of truth -- do we agree with the password? */
 	retval = AUTH_FAILED;
 	if (*stored_hash != '*' && *stored_hash != '!') {
 		hash = crypt(pass, stored_hash);
-		if (hash && !strcmp(hash, stored_hash))
+		if (hash && !strcmp(hash, stored_hash)) {
 			retval = AUTH_PASSED;
+			zeroise(hash);
+		}
 	}
 
+	zeroise(stored_hash);
+	free(stored_hash);
 	return retval;
 }
 

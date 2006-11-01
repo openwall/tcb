@@ -253,12 +253,15 @@ static int user_in_nisdb(const char *user, char *hash)
 		return 0;
 
 	colon = strchr(userinfo, ':');
-	if (!colon)
+	if (!colon) {
+		free(userinfo);
 		return 0;
+	}
 
 	*hash = 0;
 	strncat(hash, colon + 1, HASH_PREFIX_SIZE - 1);
 
+	free(userinfo);
 	return 1;
 }
 

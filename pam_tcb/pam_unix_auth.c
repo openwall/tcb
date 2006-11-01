@@ -103,6 +103,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 		}
 #endif /* defined(PAM_CONV_AGAIN) && defined(PAM_INCOMPLETE) */
 		pass = NULL;
+		free(retval_data);
 		return retval;
 	}
 

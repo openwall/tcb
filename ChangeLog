@@ -1,3 +1,15 @@
+2006-10-31  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	* tcb.spec: 1.0.2.
+
+	* pam_tcb/pam_unix_auth.c (pam_sm_authenticate): Free retval_data
+	pointer on error path.
+	* pam_tcb/support.c (user_in_nisdb): Free userinfo string.
+	* progs/tcb_chkpwd.c (zeroise): New function, zeroises string.
+	(unix_verify_password): Free stored_hash string, zeroise hash
+	strings.
+	Reported by Alexander Kanevskiy.
+
 2006-05-06  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	* tcb.spec: 1.0.1.
