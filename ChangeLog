@@ -1,5 +1,7 @@
 2009-04-02  Dmitry V. Levin  <ldv at owl.openwall.com>
 
+	* LICENSE: Update copyright for 2009 year.
+
 	* pam_tcb/pam_unix_passwd.c (update_file): Call fflush(3) and
 	fsync(2).
 	Reported by Ermanno Scaglione <erm67 at yahoo.it>.

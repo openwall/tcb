@@ -1,6 +1,6 @@
 Copyright (c) 2001, 2002 Rafal Wojtczuk <nergal at owl.openwall.com>
 Copyright (c) 2001 - 2003 Solar Designer <solar at owl.openwall.com>
-Copyright (c) 2001, 2003 - 2006 Dmitry V. Levin <ldv at owl.openwall.com>
+Copyright (c) 2001, 2003 - 2006, 2009 Dmitry V. Levin <ldv at owl.openwall.com>
 
 Additionally, some or all of the following copyright notices may apply
 to portions of pam_tcb and tcb_chkpwd:
