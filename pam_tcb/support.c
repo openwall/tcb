@@ -143,8 +143,8 @@ int _unix_fork(pam_handle_t *pamh, cb_func callback, const void *param)
 		D(("auth: retval=%d", retval));
 		if (write_loop(pfd[1], (char *)&retval, sizeof(retval)) !=
 		    sizeof(retval))
-			exit(1);
-		exit(0);
+			_exit(1);
+		_exit(0);
 
 	default:
 		close(pfd[1]);
@@ -397,20 +397,20 @@ static int unix_run_helper_binary(const char *user, const char *pass)
 
 		/* reopen stdin as pipe */
 		if (close(fds[1]))
-			exit(1);
+			_exit(1);
 		if (close(retpipe[0]))
-			exit(1);
+			_exit(1);
 		if (dup2(fds[0], STDIN_FILENO) != STDIN_FILENO)
-			exit(1);
+			_exit(1);
 		if (dup2(retpipe[1], STDOUT_FILENO) != STDOUT_FILENO)
-			exit(1);
+			_exit(1);
 
 		/* exec binary helper */
 		execve(pam_unix_param.helper, argv, envp);
 
 		/* should not get here: exit with error */
 		D(("helper binary is not available"));
-		exit(1);
+		_exit(1);
 
 	default:
 		/* wait for child */
