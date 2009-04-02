@@ -121,9 +121,9 @@ static int update_file(pam_handle_t *pamh, const char *forwho,
 		pam_syslog(pamh, LOG_CRIT,
 		    "Error opening %s: %m", tmp_file);
 		close(fd);
+		fd = -1;
 		goto out_update_file;
 	}
-	fd = -1;
 
 	if ((oldf = fopen(file, "r")) == NULL) {
 		pam_syslog(pamh, LOG_CRIT,
@@ -195,11 +195,12 @@ static int update_file(pam_handle_t *pamh, const char *forwho,
 		}
 	}
 
-	if (error || ferror(newf)) {
+	if (error || ferror(newf) || fflush(newf) || fsync(fd)) {
 		pam_syslog(pamh, LOG_CRIT,
 		    "Error writing %s: %m", tmp_file);
 		goto out_update_file;
 	}
+	fd = -1;
 
 	if (ferror(oldf)) {
 		pam_syslog(pamh, LOG_CRIT,

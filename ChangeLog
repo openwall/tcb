@@ -1,5 +1,9 @@
 2009-04-02  Dmitry V. Levin  <ldv at owl.openwall.com>
 
+	* pam_tcb/pam_unix_passwd.c (update_file): Call fflush(3) and
+	fsync(2).
+	Reported by Ermanno Scaglione <erm67 at yahoo.it>.
+
 	* pam_tcb/support.c (_unix_fork, unix_run_helper_binary): Replace
 	all calls to exit(3) in child processes with calls to _exit(2).
 	Reported by Pascal Terjan <pterjan at mandriva.com>.
