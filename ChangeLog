@@ -1,3 +1,7 @@
+2009-04-03  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	* tcb.spec: 1.0.3.
+
 2009-04-02  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	* LICENSE: Update copyright for 2009 year.

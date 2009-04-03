@@ -2,7 +2,7 @@
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
-Version: 1.0.2
+Version: 1.0.3
 Release: owl1
 License: BSD or GPL
 Group: System Environment/Base
@@ -89,6 +89,12 @@ rmdir /sbin/chkpwd.d
 %_libdir/libtcb.so
 
 %changelog
+* Fri Apr 03 2009 Dmitry V. Levin <ldv-at-owl.openwall.com> 1.0.3-owl1
+- In the PAM module, replaced all calls to exit(3) in child processes
+with calls to _exit(2).  Reported by Pascal Terjan.
+- In the PAM module, added fflush(3) and fsync(2) calls right before
+closing file opened for writing.  Reported by Ermanno Scaglione.
+
 * Tue Oct 31 2006 Dmitry V. Levin <ldv-at-owl.openwall.com> 1.0.2-owl1
 - In the PAM module and tcb_chkpwd helper, fixed memory leaks reported
 by Alexander Kanevskiy.
