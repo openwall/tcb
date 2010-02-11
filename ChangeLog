@@ -1,3 +1,9 @@
+2010-01-19  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	* libs/Makefile: Use LDFLAGS more consistently.
+	* progs/Makefile: Likewise.
+	Reported by Paweł Hajdan, Jr. <phajdan.jr at gentoo.org>.
+
 2009-04-03  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	* tcb.spec: 1.0.3.
