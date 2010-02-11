@@ -1,3 +1,8 @@
+2010-02-10  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	* tcb.spec: 1.0.4.
+	* LICENSE: Update copyright for 2010 year.
+
 2010-01-20  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	* libs/libtcb.c (tcb_drop_priv_r): Fix potential grpbuf buffer
