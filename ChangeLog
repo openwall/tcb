@@ -1,3 +1,18 @@
+2010-01-20  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	* libs/libtcb.c (tcb_drop_priv_r): Fix potential grpbuf buffer
+	overflow.  This function is expected to return -1 if the buffer in
+	tcb_privs structure is not sufficiently large to store all
+	supplementary groups, but it didn't.  It treated 1st argument of
+	getgroups(2) as the size of buffer in bytes, but according to specs it
+	should be set to the size of buffer in items that can be stored there.
+	To reproduce the bug, one has to build tcb with NGROUPS_MAX value
+	lesser than the value defined in /proc/sys/kernel/ngroups_max, and set
+	an appropriate (greater than NGROUPS_MAX) number of supplementary
+	groups for the calling process.  There doesn't appear to be any
+	untrusted user input involved.  Thus, this bug doesn't have to be
+	treated as a security issue.
+
 2010-01-19  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	* libs/Makefile: Use LDFLAGS more consistently.

@@ -206,8 +206,8 @@ int tcb_drop_priv_r(const char *name, struct tcb_privs *p)
 	}
 	free(dir);
 
-	res = getgroups(sizeof(p->grpbuf), p->grpbuf);
-	if (res < 0 || (size_t)res > sizeof(p->grpbuf))
+	res = getgroups(sizeof(p->grpbuf) / sizeof(p->grpbuf[0]), p->grpbuf);
+	if (res < 0 || (size_t)res > sizeof(p->grpbuf) / sizeof(p->grpbuf[0]))
 		return -1;
 
 	p->saved_groups = res;
