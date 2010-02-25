@@ -2,17 +2,16 @@
 #define _TCB_H
 
 #include <sys/types.h>
-#include <limits.h>
 #include <grp.h>
 
 #define TCB_DIR				"/etc/tcb"
 #define TCB_FMT				TCB_DIR "/%s/shadow"
 
-#define TCB_NGROUPS			NGROUPS_MAX
+#define TCB_NGROUPS			1024
 
 struct tcb_privs {
-	gid_t grpbuf[TCB_NGROUPS];
-	int saved_groups;
+	gid_t *grplist;
+	int number_of_groups;
 	gid_t old_gid;
 	uid_t old_uid;
 	int is_dropped;

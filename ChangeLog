@@ -1,3 +1,18 @@
+2010-02-14  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	Decrease the size of tcb_privs structure allocated in .data segment
+	from 256K to a two dozen bytes by moving a groups array to .bss segment.
+	* include/tcb.h (TCB_NGROUPS): Set to fixed value 1024 to reduce a waste
+	of address space.  The former value NGROUPS_MAX is immensely large
+	nowdays, and root privileged processes are not expected to have so large
+	list of supplementary groups anyway.
+	(struct tcb_privs): Move the groups array outside the structure.
+	* libs/libtcb.c (glob_grplist): New static groups array.
+	(tcb_drop_priv_r): Set errno in case of invalid use.
+	(glob_privs, tcb_drop_priv_r, tcb_drop_priv): Update for the change of
+	tcb_privs structure.
+	* libs/nss.c (tcb_safe_open): Likewise.
+
 2010-02-10  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	* tcb.spec: 1.0.4.

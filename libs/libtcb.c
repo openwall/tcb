@@ -137,7 +137,8 @@ int ulckpwdf_tcb(void)
 	return 0;
 }
 
-static struct tcb_privs glob_privs = { {0}, 0, -1, -1, 0 };
+static gid_t glob_grplist[TCB_NGROUPS];
+static struct tcb_privs glob_privs = { glob_grplist, 0, -1, -1, 0 };
 
 #ifdef ENABLE_SETFSUGID
 #include <sys/fsuid.h>
@@ -184,8 +185,10 @@ int tcb_drop_priv_r(const char *name, struct tcb_privs *p)
 	gid_t shadow_gid = -1;
 	char *dir;
 
-	if (p->is_dropped)
+	if (p->is_dropped) {
+		errno = EINVAL;
 		return -1;
+	}
 
 /* if not root, we can do nothing and in fact we do not care */
 	if (geteuid()) {
@@ -206,11 +209,11 @@ int tcb_drop_priv_r(const char *name, struct tcb_privs *p)
 	}
 	free(dir);
 
-	res = getgroups(sizeof(p->grpbuf) / sizeof(p->grpbuf[0]), p->grpbuf);
-	if (res < 0 || (size_t)res > sizeof(p->grpbuf) / sizeof(p->grpbuf[0]))
+	res = getgroups(p->number_of_groups, p->grplist);
+	if (res < 0 || res > p->number_of_groups)
 		return -1;
 
-	p->saved_groups = res;
+	p->number_of_groups = res;
 
 	if (setgroups(0, NULL) == -1)
 		return -1;
@@ -234,6 +237,7 @@ int tcb_gain_priv_r(struct tcb_privs *p)
 		break;
 
 	default:
+		errno = EINVAL;
 		return -1;
 	}
 
@@ -241,7 +245,7 @@ int tcb_gain_priv_r(struct tcb_privs *p)
 		return -1;
 	if (!ch_gid(p->old_gid, NULL))
 		return -1;
-	if (setgroups(p->saved_groups, p->grpbuf) == -1)
+	if (setgroups(p->number_of_groups, p->grplist) == -1)
 		return -1;
 
 	p->is_dropped = 0;
@@ -250,6 +254,7 @@ int tcb_gain_priv_r(struct tcb_privs *p)
 
 int tcb_drop_priv(const char *name)
 {
+	glob_privs.number_of_groups = TCB_NGROUPS;
 	return tcb_drop_priv_r(name, &glob_privs);
 }
 

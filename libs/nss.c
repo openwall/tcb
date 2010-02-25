@@ -29,7 +29,8 @@ int _nss_tcb_endspent(void)
 
 static FILE *tcb_safe_open(const char *file, const char *name)
 {
-	struct tcb_privs tp = {};
+	gid_t grplist[TCB_NGROUPS];
+	struct tcb_privs tp = { grplist, TCB_NGROUPS, -1, -1, 0 };
 	FILE *f;
 	int fd, saved_errno;
 
