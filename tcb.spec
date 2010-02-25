@@ -2,7 +2,7 @@
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
-Version: 1.0.4
+Version: 1.0.5
 Release: owl1
 License: BSD or GPL
 Group: System Environment/Base
@@ -89,6 +89,10 @@ rmdir /sbin/chkpwd.d
 %_libdir/libtcb.so
 
 %changelog
+* Thu Feb 25 2010 Dmitry V. Levin <ldv-at-owl.openwall.com> 1.0.5-owl1
+- Decrease the size of tcb_privs structure allocated in .data segment
+from 256K to a two dozen bytes by moving a groups array to .bss segment.
+
 * Wed Feb 10 2010 Dmitry V. Levin <ldv-at-owl.openwall.com> 1.0.4-owl1
 - Fixed potential grpbuf buffer overflow in tcb_drop_priv_r().  There
 doesn't appear to be any untrusted user input involved, so this bug

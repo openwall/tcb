@@ -1,3 +1,7 @@
+2010-02-25  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	* tcb.spec: 1.0.5.
+
 2010-02-14  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	Decrease the size of tcb_privs structure allocated in .data segment
