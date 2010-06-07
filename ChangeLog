@@ -1,5 +1,7 @@
 2010-06-07  Dmitry V. Levin  <ldv at owl.openwall.com>
 
+	* tcb.spec: 1.0.6.
+
 	* libs/libtcb.c (tcb_is_suspect): Drop faulty check for sparse files.
 	It was based on a wrong assumption that st_blksize indicates the size
 	of allocated blocks.  Also, the notion of sparse files does not apply
