@@ -267,9 +267,7 @@ int tcb_is_suspect(int fd)
 {
 	struct stat st;
 
-	if (fstat(fd, &st) || !S_ISREG(st.st_mode) ||
-	    (st.st_size > st.st_blocks * st.st_blksize &&
-	    st.st_blksize >= 512))
+	if (fstat(fd, &st) || !S_ISREG(st.st_mode))
 		return -1;
 
 	return 0;

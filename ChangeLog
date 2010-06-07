@@ -1,3 +1,16 @@
+2010-06-07  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	* libs/libtcb.c (tcb_is_suspect): Drop faulty check for sparse files.
+	It was based on a wrong assumption that st_blksize indicates the size
+	of allocated blocks.  Also, the notion of sparse files does not apply
+	to filesystems with compression turned on.
+	The purpose of this check was to prevent some DoS attacks on root
+	invoking user management tools and on services doing authentication.
+	However, on a system with tcb shadow files, if group shadow access is
+	somehow compromised, those files may be directly written to by their
+	corresponding users (as well as made sparse).
+	Bug reported by Jim Darby <jim at jimbocorp.uklinux.net>.
+
 2010-02-25  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	* tcb.spec: 1.0.5.
