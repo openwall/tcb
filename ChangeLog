@@ -8,9 +8,10 @@
 	to filesystems with compression turned on.
 	The purpose of this check was to prevent some DoS attacks on root
 	invoking user management tools and on services doing authentication.
-	However, on a system with tcb shadow files, if group shadow access is
-	somehow compromised, those files may be directly written to by their
-	corresponding users (as well as made sparse).
+	On a system with tcb shadow files, if group shadow access is somehow
+	compromised, those files may be directly written to by their
+	corresponding users as well as made sparse, which is what made this
+	check somewhat desirable, but it was insufficient and problematic.
 	Bug reported by Jim Darby <jim at jimbocorp.uklinux.net>.
 
 2010-02-25  Dmitry V. Levin  <ldv at owl.openwall.com>
