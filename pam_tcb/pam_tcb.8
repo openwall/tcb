@@ -1,4 +1,4 @@
-.TH PAM_TCB 8 "23 August 2005" "Openwall Project"
+.TH PAM_TCB 8 "July 17, 2011" "Openwall Project"
 .SH NAME
 \fBpam_tcb\fR \- authentication, account, session, and password management
 PAM module for Unix with support for the tcb password shadowing scheme
@@ -218,10 +218,9 @@ obsolete FreeBSD-derived MD5-based algorithm.
 When updating a user's password, generate the salt with the specified
 .I prefix
 (which determines the hashing method to use).
-The default is "$2a$", which requests
+The default is "$2y$", which requests
 .BR bcrypt ,
-a Blowfish-based hashing method which supports variable iteration
-counts.
+a Blowfish-based hashing method, which supports variable iteration counts.
 .TP
 .BR count =
 The number of iterations of an underlying cryptographic primitive to

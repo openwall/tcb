@@ -1019,7 +1019,7 @@ int _set_ctrl(pam_handle_t *pamh, int flags, int argc, const char **argv)
 		if (!parse_opt(pamh, *argv, the_cmdline_opts))
 			return 0;
 	param = get_optval("prefix=", the_cmdline_opts);
-	pam_unix_param.crypt_prefix = param ?: "$2a$";
+	pam_unix_param.crypt_prefix = param ?: "$2y$";
 
 	param = get_optval("helper=", the_cmdline_opts);
 	pam_unix_param.helper = param ?: CHKPWD_HELPER;

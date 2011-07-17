@@ -2,14 +2,14 @@
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
-Version: 1.0.6
+Version: 1.1
 Release: owl1
 License: BSD or GPL
 Group: System Environment/Base
 URL: http://www.openwall.com/tcb/
 Source: ftp://ftp.openwall.com/pub/projects/tcb/%name-%version.tar.gz
 PreReq: /sbin/ldconfig, %_libexecdir/chkpwd
-Requires: glibc-crypt_blowfish
+Requires: glibc-crypt_blowfish >= 1.2
 # Due to pam_pwdb.so
 Conflicts: pam < 0:0.80-owl1
 BuildRequires: glibc-crypt_blowfish-devel, pam-devel
@@ -89,6 +89,10 @@ rmdir /sbin/chkpwd.d
 %_libdir/libtcb.so
 
 %changelog
+* Sun Jul 17 2011 Solar Designer <solar-at-owl.openwall.com> 1.1-owl1
+- Changed the default hash encoding prefix from "$2a$" to "$2y$" (requires
+crypt_blowfish 1.2 or newer).
+
 * Mon Jun 07 2010 Dmitry V. Levin <ldv-at-owl.openwall.com> 1.0.6-owl1
 - Dropped faulty check for sparse files in tcb_is_suspect().
 
