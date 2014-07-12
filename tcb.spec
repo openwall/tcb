@@ -3,12 +3,12 @@
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
 Version: 1.1
-Release: owl1
+Release: owl2
 License: BSD or GPL
 Group: System Environment/Base
 URL: http://www.openwall.com/tcb/
 Source: ftp://ftp.openwall.com/pub/projects/tcb/%name-%version.tar.gz
-PreReq: /sbin/ldconfig, %_libexecdir/chkpwd
+Requires: %_libexecdir/chkpwd
 Requires: glibc-crypt_blowfish >= 1.2
 # Due to pam_pwdb.so
 Conflicts: pam < 0:0.80-owl1
@@ -89,6 +89,9 @@ rmdir /sbin/chkpwd.d
 %_libdir/libtcb.so
 
 %changelog
+* Mon Jun 30 2014 (GalaxyMaster) <galaxy-at-owl.openwall.com> 1.1-owl2
+- Removed the deprecated PreReq tag.
+
 * Sun Jul 17 2011 Solar Designer <solar-at-owl.openwall.com> 1.1-owl1
 - Changed the default hash encoding prefix from "$2a$" to "$2y$" (requires
 crypt_blowfish 1.2 or newer).
