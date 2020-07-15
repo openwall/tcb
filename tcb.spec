@@ -2,8 +2,8 @@
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
-Version: 1.1
-Release: owl2
+Version: 1.1.9.1
+Release: owl1
 License: BSD or GPL
 Group: System Environment/Base
 URL: http://www.openwall.com/tcb/
@@ -89,6 +89,18 @@ rmdir /sbin/chkpwd.d
 %_libdir/libtcb.so
 
 %changelog
+* Sat Jul 07 2018 Dmitry V. Levin <ldv-at-owl.openwall.com> 1.1.9.1-owl1
+- pam_tcb:
++ Implemented i18n support which is off by default, it can be enabled by
+defining both ENABLE_NLS and NLS_PACKAGE macros.
++ Dropped obsolete NIS/NIS+ support.
++ Dropped support for not_set_pass option, introduced authtok_type= option
+instead, following the change in pam_unix implemented in Linux-PAM-1.3.0.
++ Synced password expiration messages with Linux-PAM-1.4.0.
++ Changed crypt_gensalt_ra invocation to use default entropy and hash encoding
+prefix provided by libcrypt runtime when libxcrypt >= 4.1.0 is used for build.
++ Changed the default hash encoding prefix from $2y$ to $2b$.
+
 * Mon Jun 30 2014 (GalaxyMaster) <galaxy-at-owl.openwall.com> 1.1-owl2
 - Removed the deprecated PreReq tag.
 
