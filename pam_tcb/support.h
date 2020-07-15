@@ -113,8 +113,8 @@ struct cmdline_opts {
 struct pam_unix_params {
 	unsigned int ctrl[OPT_SIZE];
 	int write_to;
-	const unsigned char *crypt_prefix;
-	const unsigned char *helper;
+	const char *crypt_prefix;
+	const char *helper;
 	unsigned long count;
 };
 extern struct pam_unix_params pam_unix_param;

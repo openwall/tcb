@@ -1,3 +1,10 @@
+2020-07-15  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	pam_tcb: fix harmless -Wpointer-sign compilation warnings.
+	* pam_tcb/support.h (struct pam_unix_params): Change the type of
+	"crypt_prefix" and "helper" fields from "const unsigned char *"
+	to "const char *".
+
 2018-07-07  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	pam_tcb: change the default prefix from $2y$ to $2b$ to be friendlier
