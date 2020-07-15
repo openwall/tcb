@@ -676,6 +676,11 @@ char *do_crypt(pam_handle_t *pamh, const char *pass)
 {
 	char *retval;
 	char *salt;
+
+#ifdef CRYPT_GENSALT_IMPLEMENTS_AUTO_ENTROPY
+	salt = crypt_gensalt_ra(pam_unix_param.crypt_prefix,
+	    pam_unix_param.count, NULL, 0);
+#else
 	char entropy[16];
 	int fd;
 
@@ -695,6 +700,7 @@ char *do_crypt(pam_handle_t *pamh, const char *pass)
 	    pam_unix_param.count, entropy, sizeof(entropy));
 
 	memset(entropy, 0, sizeof(entropy));
+#endif
 
 	if (!salt) {
 		pam_syslog(pamh, LOG_CRIT, "crypt_gensalt_ra: %m");
