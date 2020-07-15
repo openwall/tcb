@@ -221,7 +221,7 @@ int _unix_user_in_db(pam_handle_t *pamh, const char *user, char *hash)
 	return 0;
 }
 
-static struct passwd fake_pw = {"UNKNOWN USER", "x"};
+static struct passwd fake_pw = {"UNKNOWN USER", "x", 0, 0, NULL, NULL, NULL};
 
 /*
  * _unix_blankpasswd() is a quick check for a blank password
