@@ -15,9 +15,13 @@
 #if defined(ENABLE_NLS) && defined(NLS_PACKAGE)
 #include <libintl.h>
 #define _(msgid) dgettext(NLS_PACKAGE, msgid)
+#define P3_(msgid, msgid_plural, count) \
+	(dngettext(NLS_PACKAGE, (msgid), (msgid_plural), (count)))
 #define N_(msgid) msgid
 #else
 #define _(msgid) (msgid)
+#define P3_(msgid, msgid_plural, count) \
+	((count) == 1 ? (msgid) : (msgid_plural))
 #define N_(msgid) msgid
 #endif /* ENABLE_NLS && NLS_PACKAGE */
 
@@ -30,18 +34,23 @@
 /* Possible messages during account management */
 #define MESSAGE_ACCT_EXPIRED \
 	_("Your account has expired; please contact your system administrator.")
+#define MESSAGE_PASS_ENFORCED \
+	_("You are required to change your password immediately (administrator enforced).")
 #define MESSAGE_PASS_EXPIRED \
-	_("You are required to change your password immediately.")
-#define MESSAGE_WARN_EXPIRE \
-	_("Warning: your password will expire in %d day%s.")
+	_("You are required to change your password immediately (password expired).")
+#define MESSAGE_WARN_EXPIRE(count) \
+	P3_("Warning: your password will expire in %d day.", \
+	    "Warning: your password will expire in %d days.", \
+	    (count)), (count)
+
 
 /* Possible messages during password changes */
 #define MESSAGE_CHANGING \
 	_("Changing password for %s.")
 #define MESSAGE_PASS_SAME \
-	_("Password unchanged.")
+	_("The password has not been changed.")
 #define MESSAGE_PASS_NONE \
-	_("No password supplied.")
+	_("No password has been supplied.")
 #define MESSAGE_TOOSOON \
 	_("You must wait longer to change your password.")
 

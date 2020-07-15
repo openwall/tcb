@@ -1,3 +1,14 @@
+2018-06-19  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	pam_tcb: sync password expiration messages with Linux-PAM-1.4.0.
+	* pam_tcb/support.h (P3_, MESSAGE_PASS_ENFORCED): New macros.
+	(MESSAGE_PASS_EXPIRED, MESSAGE_PASS_SAME, MESSAGE_PASS_NONE):
+	Update messages.
+	(MESSAGE_WARN_EXPIRE): Add count argument, update messages.
+	* pam_tcb/pam_unix_acct.c (pam_sm_acct_mgmt): Replace
+	MESSAGE_PASS_EXPIRED with MESSAGE_PASS_ENFORCED, update use of
+	MESSAGE_WARN_EXPIRE.
+
 2018-05-31  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	pam_tcb: use pam_get_authtok(3) instead of _unix_read_password.

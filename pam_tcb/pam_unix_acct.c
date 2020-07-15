@@ -148,7 +148,7 @@ PAM_EXTERN int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags,
 		pam_syslog(pamh, LOG_INFO,
 		    "Expired password for %s (root enforced)", user);
 		if (off(UNIX__QUIET))
-			pam_error(pamh, "%s", MESSAGE_PASS_EXPIRED);
+			pam_error(pamh, "%s", MESSAGE_PASS_ENFORCED);
 		D(("need a new password (1)"));
 		return PAM_NEW_AUTHTOK_REQD;
 
@@ -165,8 +165,7 @@ PAM_EXTERN int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags,
 		    "Password for %s will expire in %d day%s",
 		    user, daysleft, daysleft == 1 ? "" : "s");
 		if (off(UNIX__QUIET))
-			pam_info(pamh, MESSAGE_WARN_EXPIRE,
-			    daysleft, daysleft == 1 ? "" : "s");
+			pam_info(pamh, MESSAGE_WARN_EXPIRE(daysleft));
 		return PAM_SUCCESS;
 
 	default:
