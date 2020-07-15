@@ -32,12 +32,6 @@ IO_LOOP(write_loop, write, const)
 #include "attribute.h"
 #include "support.h"
 
-static void data_cleanup(unused pam_handle_t *pamh, void *data,
-    unused int error_status)
-{
-	_pam_delete(data);
-}
-
 int unix_getspnam(struct spwd **spw, const struct passwd *pw)
 {
 	D(("called"));
@@ -640,109 +634,6 @@ int _unix_verify_password(pam_handle_t *pamh,
 	return retval;
 }
 
-/*
- * Obtain a password from the user.
- */
-
-int _unix_read_password(pam_handle_t *pamh,
-    const char *comment, const char *prompt1, const char *prompt2,
-    const char *data_name, const char **pass)
-{
-	pam_item_t item;
-	char *token;
-	int authtok_flag;
-	int retval = PAM_SUCCESS;
-
-	D(("called"));
-
-	/* make sure nothing inappropriate gets returned */
-	*pass = token = NULL;
-
-	/* which authentication token are we getting? */
-	authtok_flag = on(UNIX__OLD_PASSWD) ? PAM_OLDAUTHTOK : PAM_AUTHTOK;
-
-	/* should we obtain the password from a PAM item? */
-	if (pam_unix_param.authtok_usage != USE_NONE) {
-		retval = pam_get_item(pamh, authtok_flag, &item);
-		if (retval != PAM_SUCCESS) {
-			/* very strange */
-			return retval;
-		} else if (item) { /* we have a password! */
-			*pass = item;
-			item = NULL;
-			return PAM_SUCCESS;
-		} else if (pam_unix_param.authtok_usage == USE_FORCED) {
-			return PAM_AUTHTOK_RECOVER_ERR; /* didn't work */
-		} else if (on(UNIX_USE_AUTHTOK)
-		    && off(UNIX__OLD_PASSWD)) {
-			return PAM_AUTHTOK_RECOVER_ERR;
-		}
-	}
-
-	/* getting here implies we will have to get the password from the
-	 * user directly */
-	if (comment && off(UNIX__QUIET)) {
-		retval = pam_info(pamh, "%s", comment);
-	}
-
-	if (retval == PAM_SUCCESS && prompt1) {
-		retval = pam_prompt(pamh, PAM_PROMPT_ECHO_OFF, &token, "%s",
-		    prompt1);
-	}
-
-	if (retval == PAM_SUCCESS && token && prompt2) {
-		char *resp;
-		retval = pam_prompt(pamh, PAM_PROMPT_ECHO_OFF, &resp, "%s",
-		    prompt2);
-		if (retval != PAM_SUCCESS || !resp) {
-			_pam_delete(token);
-		} else if (strcmp(token, resp)) {
-			_pam_delete(token);
-			pam_error(pamh, "%s", MESSAGE_MISTYPED);
-			retval = PAM_AUTHTOK_RECOVER_ERR;
-		}
-		_pam_delete(resp);
-	}
-
-	if (retval != PAM_SUCCESS) {
-		pam_syslog(pamh, LOG_NOTICE,
-		    "Unable to obtain a password");
-		return retval;
-	}
-
-	/* 'token' is the entered password */
-	if (off(UNIX_NOT_SET_PASS)) {
-		/* we store this password as an item */
-		retval = pam_set_item(pamh, authtok_flag, token);
-		_pam_delete(token);
-		if (retval != PAM_SUCCESS ||
-		    (retval = pam_get_item(pamh, authtok_flag, &item))
-		    != PAM_SUCCESS) {
-			pam_syslog(pamh, LOG_CRIT,
-			    "Error manipulating password");
-			return retval;
-		}
-	} else {
-		/*
-		 * Then store it as data specific to this module. pam_end()
-		 * will arrange to clean it up.
-		 */
-		retval = pam_set_data(pamh, data_name, (void *)token,
-		    data_cleanup);
-		if (retval != PAM_SUCCESS) {
-			_pam_delete(token);
-			pam_syslog(pamh, LOG_CRIT,
-			    "Error manipulating password");
-			return retval;
-		}
-		item = token;
-	}
-
-	*pass = item;
-
-	return PAM_SUCCESS;
-}
-
 static char *crypt_wrapper_ra(pam_handle_t *pamh, const char *key,
     const char *salt)
 {
@@ -824,7 +715,8 @@ static struct bool_names {
 	int optval, negate;
 } unix_bools[] = {
 	{"audit", UNIX_AUDIT, 0},
-	{"not_set_pass", UNIX_NOT_SET_PASS, 0},
+	{"use_first_pass", UNIX_USE_FIRST_PASS, 0},
+	{"try_first_pass", UNIX_TRY_FIRST_PASS, 0},
 	{"use_authtok", UNIX_USE_AUTHTOK, 0},
 	{"shadow", UNIX_SHADOW, 0},
 	{"passwd", UNIX_PASSWD, 0},
@@ -849,10 +741,6 @@ static int parse_opt(pam_handle_t *pamh, const char *item,
 
 	if (!strcmp(item, "md5"))
 		opt = "prefix=$1$";
-	else if (!strcmp(item, "try_first_pass"))
-		opt = "authtok_usage=try";
-	else if (!strcmp(item, "use_first_pass"))
-		opt = "authtok_usage=forced";
 	else
 		opt = item;
 
@@ -905,7 +793,7 @@ int _set_ctrl(pam_handle_t *pamh, int flags, int argc, const char **argv)
 	unsigned int i;
 	const char *param;
 	struct cmdline_opts the_cmdline_opts[] = {
-		{"authtok_usage=", NULL, NULL},
+		{"authtok_type=", NULL, NULL},
 		{"helper=", NULL, NULL},
 		{"count=", NULL, NULL},
 		{"write_to=", NULL, NULL},
@@ -969,22 +857,6 @@ int _set_ctrl(pam_handle_t *pamh, int flags, int argc, const char **argv)
 		}
 	} else
 		pam_unix_param.count = 0;
-
-	param = get_optval("authtok_usage=", the_cmdline_opts);
-	if (param) {
-		if (!strcmp(param, "no"))
-			pam_unix_param.authtok_usage = USE_NONE;
-		else if (!strcmp(param, "try"))
-			pam_unix_param.authtok_usage = USE_TRY;
-		else if (!strcmp(param, "forced"))
-			pam_unix_param.authtok_usage = USE_FORCED;
-		else {
-			pam_syslog(pamh, LOG_ERR,
-			    "Invalid authtok_usage= argument: %s", param);
-			return 0;
-		}
-	} else
-		pam_unix_param.authtok_usage = USE_NONE;
 
 	param = get_optval("write_to=", the_cmdline_opts);
 	if (param) {

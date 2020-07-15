@@ -12,7 +12,6 @@
 #include "attribute.h"
 #include "support.h"
 
-#define DATA_AUTHTOK			"-UN*X-PASS"
 #define DATA_AUTH_RETVAL		"-UN*X-AUTH-RETVAL"
 
 static void retval_cleanup(unused pam_handle_t * pamh, void *data,
@@ -84,8 +83,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 		goto out_save_retval;
 	}
 
-	retval = _unix_read_password(pamh, NULL, PROMPT_PASS, NULL,
-	    DATA_AUTHTOK, &pass);
+	retval = pam_get_authtok(pamh, PAM_AUTHTOK, &pass, NULL);
 
 	if (retval != PAM_SUCCESS) {
 #if defined(PAM_CONV_AGAIN) && defined(PAM_INCOMPLETE)

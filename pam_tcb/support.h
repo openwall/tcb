@@ -27,18 +27,6 @@
 /* should be large enough to hold "*NP*" */
 #define HASH_PREFIX_SIZE		5
 
-/* Password prompt to use for authentication */
-#define PROMPT_PASS \
-	_("Password: ")
-
-/* Prompts to use for password changes */
-#define PROMPT_OLDPASS \
-	_("Enter current password: ")
-#define PROMPT_NEWPASS1 \
-	_("Enter new password: ")
-#define PROMPT_NEWPASS2 \
-	_("Re-type new password: ")
-
 /* Possible messages during account management */
 #define MESSAGE_ACCT_EXPIRED \
 	_("Your account has expired; please contact your system administrator.")
@@ -56,8 +44,6 @@
 	_("No password supplied.")
 #define MESSAGE_TOOSOON \
 	_("You must wait longer to change your password.")
-#define MESSAGE_MISTYPED \
-	_("Sorry, passwords do not match.")
 
 /*
  * Here are the various boolean options recognized by the unix module.
@@ -71,7 +57,11 @@ enum {
 
 	UNIX_AUDIT,		/* print more things than debug, */
 				/* some information may be sensitive */
-	UNIX_NOT_SET_PASS,	/* don't set the AUTHTOK items */
+	UNIX_USE_FIRST_PASS,	/* don't prompt the user for passwords */
+	UNIX_TRY_FIRST_PASS,	/* take passwords from PAM_AUTHTOK and possibly
+				   PAM_OLDAUTHTOK items, but prompt the user
+				   if the appropriate PAM item is unset */
+	UNIX_AUTHTOK_TYPE,	/* the type of password to use in prompts */
 
 	UNIX__PRELIM,		/* internal */
 	UNIX__UPDATE,		/* internal */
@@ -101,12 +91,6 @@ enum {
 	((_UNIX_BOOLS - 1) / _INT_BITS + 1)
 
 enum {
-	USE_NONE = 0,		/* ask for password via the conv function */
-	USE_TRY,		/* try to get password(s) from PAM_*AUTHTOK */
-	USE_FORCED		/* get password(s) from PAM_*AUTHTOK or fail */
-};
-
-enum {
 	WRITE_PASSWD = 0,	/* write changed password to /etc/passwd */
 	WRITE_SHADOW,		/* write changed password to /etc/shadow */
 	WRITE_TCB		/* write changed password to /etc/tcb/ */
@@ -119,7 +103,6 @@ struct cmdline_opts {
 
 struct pam_unix_params {
 	unsigned int ctrl[OPT_SIZE];
-	int authtok_usage;
 	int write_to;
 	const unsigned char *crypt_prefix;
 	const unsigned char *helper;
@@ -182,9 +165,6 @@ extern int _unix_fork(pam_handle_t *, cb_func, const void *);
 extern int _set_ctrl(pam_handle_t *, int flags, int argc, const char **argv);
 extern int _unix_blankpasswd(pam_handle_t *, const char *user);
 extern int _unix_verify_password(pam_handle_t *, const char *, const char *);
-extern int _unix_read_password(pam_handle_t *, const char *comment,
-    const char *prompt1, const char *prompt2, const char *data_name,
-    const char **pass);
 extern int unix_getspnam(struct spwd **, const struct passwd *);
 extern char *crypt_wrapper(pam_handle_t *, const char *, const char *);
 extern char *do_crypt(pam_handle_t *, const char *);

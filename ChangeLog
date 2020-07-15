@@ -1,3 +1,40 @@
+2018-05-31  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	pam_tcb: use pam_get_authtok(3) instead of _unix_read_password.
+	This follows the change in pam_unix implemented in Linux-PAM
+	commit Linux-PAM-1.3.0~5.
+	pam_get_authtok(3) is available in OpenPAM since 2002-04-08
+	and in Linux-PAM by since 2008-12-03.
+	As pam_get_authtok(3) does not support not_set_pass option,
+	the support for this not much useful option is dropped.
+	Instead pam_tcb gets a proper support for authtok_type= option.
+	* pam_tcb/pam_tcb.8 (not_set_pass): Remove.
+	(authtok_type): New option.
+	* pam_tcb/pam_unix_auth.c (DATA_AUTHTOK): Remove unused macro.
+	(pam_sm_authenticate): Use pam_get_authtok instead of
+	_unix_read_password.
+	* pam_tcb/pam_unix_passwd.c (DATA_OLD_AUTHTOK, DATA_NEW_AUTHTOK):
+	Remove unused macros.
+	(do_setpass): Remove "fromwhat" argument.
+	(unix_prelim): Use pam_get_authtok instead of _unix_read_password.
+	(pam_sm_chauthtok): Remove UNIX_NOT_SET_PASS support.
+	* pam_tcb/support.c (data_cleanup, _unix_read_password): Remove
+	unused functions.
+	(unix_bools): Replace "not_set_pass" with "use_first_pass" and
+	"try_first_pass".
+	(parse_opt): Remove manual handling of "use_first_pass" and
+	"try_first_pass".
+	(_set_ctrl): Replace "authtok_usage=" with "authtok_type=" in
+	the_cmdline_opts.  Remove manual handling of "authtok_usage=".
+	* pam_tcb/support.h (UNIX_USE_FIRST_PASS, UNIX_TRY_FIRST_PASS,
+	UNIX_AUTHTOK_TYPE): New enum constants.
+	(PROMPT_PASS, PROMPT_OLDPASS, PROMPT_NEWPASS1, PROMPT_NEWPASS2,
+	MESSAGE_MISTYPED): Remove unused macros.
+	(UNIX_NOT_SET_PASS, USE_NONE, USE_TRY, USE_FORCED): Remove unused
+	enum constants.
+	(struct pam_unix_params): Remove unused authtok_usage field.
+	(_unix_read_password): Remove unused prototype.
+
 2018-05-22  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	pam_tcb: drop obsolete NIS/NIS+ support.

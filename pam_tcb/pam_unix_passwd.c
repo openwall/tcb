@@ -23,9 +23,6 @@
 #include "attribute.h"
 #include "support.h"
 
-#define DATA_OLD_AUTHTOK		"-UN*X-OLD-PASS"
-#define DATA_NEW_AUTHTOK		"-UN*X-NEW-PASS"
-
 #define TRIES				3
 
 #define TMP_SUFFIX			".tmp"
@@ -246,8 +243,7 @@ static char *get_pwfile(const char *forwho)
 	}
 }
 
-static int do_setpass(pam_handle_t *pamh, const char *forwho,
-    const char *fromwhat, char *towhat)
+static int do_setpass(pam_handle_t *pamh, const char *forwho, char *towhat)
 {
 	struct passwd *pw = NULL;
 	char *file;
@@ -382,9 +378,6 @@ static int unix_approve_pass(pam_handle_t *pamh,
 
 static int unix_prelim(pam_handle_t *pamh, const char *user)
 {
-	int lctrl[OPT_SIZE];
-	char *greeting;
-	const char *oldpass;
 	int retval = PAM_SUCCESS;
 
 	D(("called"));
@@ -392,20 +385,15 @@ static int unix_prelim(pam_handle_t *pamh, const char *user)
 	if (_unix_blankpasswd(pamh, user))
 		goto out;
 
-	if (asprintf(&greeting, MESSAGE_CHANGING, user) < 0) {
-		pam_syslog(pamh, LOG_CRIT, "Out of memory");
-		return PAM_BUF_ERR;
-	}
-
 	if (off(UNIX__IAMROOT)) {
-		memcpy(lctrl, pam_unix_param.ctrl, sizeof(lctrl));
-		set(UNIX__OLD_PASSWD);
-		retval = _unix_read_password(pamh, greeting,
-		    PROMPT_OLDPASS, NULL,
-		    DATA_OLD_AUTHTOK, &oldpass);
-		free(greeting);
-		memcpy(pam_unix_param.ctrl, lctrl,
-		    sizeof(pam_unix_param.ctrl));
+		const char *oldpass;
+
+		if (off(UNIX__QUIET)) {
+			retval = pam_info(pamh, MESSAGE_CHANGING, user);
+			if (retval != PAM_SUCCESS)
+				return retval;
+		}
+		retval = pam_get_authtok(pamh, PAM_OLDAUTHTOK, &oldpass, NULL);
 
 		if (retval != PAM_SUCCESS) {
 			pam_syslog(pamh, LOG_NOTICE,
@@ -423,13 +411,7 @@ static int unix_prelim(pam_handle_t *pamh, const char *user)
 		}
 	} else {
 		D(("process run by root so no authentication is done"));
-		oldpass = NULL;
-		retval = PAM_SUCCESS;
 	}
-
-	retval = pam_set_item(pamh, PAM_OLDAUTHTOK, (const void *)oldpass);
-	if (retval != PAM_SUCCESS)
-		pam_syslog(pamh, LOG_CRIT, "Failed to set PAM_OLDAUTHTOK");
 
 	retval = unix_verify_shadow(user);
 	if (retval == PAM_AUTHTOK_ERR) {
@@ -465,6 +447,7 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
     int argc, const char **argv)
 {
 	int retval, retry;
+	pam_item_t item;
 	char oldprefix[HASH_PREFIX_SIZE];
 	/* <DO NOT free() THESE> */
 	const char *user, *oldpass, *newpass;
@@ -519,32 +502,14 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 
 	D(("do update"));
 
-	/*
-	 * Get the old token back. NULL was ok only if root (at this
-	 * point we assume that this has already been enforced on a
-	 * previous call to this function).
-	 */
-	if (off(UNIX_NOT_SET_PASS)) {
-		pam_item_t item;
-
-		retval = pam_get_item(pamh, PAM_OLDAUTHTOK, &item);
-		oldpass = item;
-	} else {
-		pam_data_t item;
-
-		retval = pam_get_data(pamh, DATA_OLD_AUTHTOK, &item);
-		if (retval == PAM_NO_MODULE_DATA) {
-			retval = PAM_SUCCESS;
-			item = NULL;
-		}
-		oldpass = item;
-	}
-	D(("oldpass=[%s]", oldpass));
-
+	retval = pam_get_item(pamh, PAM_OLDAUTHTOK, &item);
 	if (retval != PAM_SUCCESS) {
 		pam_syslog(pamh, LOG_NOTICE, "User not authenticated");
 		return retval;
 	}
+
+	oldpass = item;
+	D(("oldpass=[%s]", oldpass));
 
 	/* check account expiration */
 	retval = unix_verify_shadow(user);
@@ -557,20 +522,10 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 	D(("get new password now"));
 
 	retval = PAM_AUTHTOK_ERR;
-	retry = 0;
+	retry = on(UNIX_USE_FIRST_PASS) ? TRIES - 1 : 0;
 	newhash = NULL;
 	while (retval != PAM_SUCCESS && retry++ < TRIES) {
-		int old_authtok_usage = pam_unix_param.authtok_usage;
-		/*
-		 * use_authtok is to force the use of a previously entered
-		 * password, needed for pluggable password strength checking.
-		 */
-		if (on(UNIX_USE_AUTHTOK))
-			pam_unix_param.authtok_usage = USE_FORCED;
-		retval = _unix_read_password(pamh, NULL,
-		    PROMPT_NEWPASS1, PROMPT_NEWPASS2,
-		    DATA_NEW_AUTHTOK, &newpass);
-		pam_unix_param.authtok_usage = old_authtok_usage;
+		retval = pam_get_authtok(pamh, PAM_AUTHTOK, &newpass, NULL);
 
 		D(("returned to pam_sm_chauthtok"));
 
@@ -592,10 +547,11 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 		retval = unix_approve_pass(pamh, oldpass, newpass);
 	}
 
+	_pam_overwrite((char *)oldpass);
+
 	if (retval != PAM_SUCCESS) {
 		pam_syslog(pamh, LOG_NOTICE, "New password not acceptable");
 		_pam_overwrite((char *)newpass);
-		_pam_overwrite((char *)oldpass);
 		return retval;
 	}
 
@@ -612,10 +568,9 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 
 	/* update the password database(s) -- race conditions? */
 	if (newhash)
-		retval = do_setpass(pamh, user, oldpass, newhash);
+		retval = do_setpass(pamh, user, newhash);
 	else
 		retval = PAM_BUF_ERR;
-	_pam_overwrite((char *)oldpass);
 	_pam_delete(newhash);
 
 	if (retval == PAM_SUCCESS) {

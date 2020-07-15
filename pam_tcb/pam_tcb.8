@@ -171,8 +171,10 @@ but applies to the (new)
 .B PAM_AUTHTOK
 only.  This is intended for stacking password management modules.
 .TP
-.B not_set_pass
-Don't set the PAM items with passwords used by this module.
+.BR authtok_type =
+This option can be used to modify the password prompt
+when changing passwords to include the type of the password.
+The default is empty.
 .TP
 .B likeauth
 When called as a credential setting module, return the same value as
