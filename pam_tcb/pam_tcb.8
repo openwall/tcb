@@ -211,7 +211,8 @@ obsolete FreeBSD-derived MD5-based algorithm.
 When updating a user's password, generate the salt with the specified
 .I prefix
 (which determines the hashing method to use).
-The default is "$2y$", which requests
+Unless the underlying libcrypt library implements a default hashing method,
+the default is "$2y$", which requests
 .BR bcrypt ,
 a Blowfish-based hashing method, which supports variable iteration counts.
 .TP

@@ -1,5 +1,18 @@
 2018-06-26  Dmitry V. Levin  <ldv at owl.openwall.com>
 
+	pam_tcb: request automatic prefix if libcrypt implements it.
+	In libxcrypt, starting with version 4.0.0, supplying a null pointer
+	as the "prefix" argument to crypt_gensalt_ra function will cause it
+	to select the best available hash function.
+	Starting with version 4.1.0, libxcrypt provides
+	CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX macro to test the availability
+	of this feature at build time.
+	* pam_tcb/support.c (_set_ctrl)
+	[CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX]: When
+	pam_unix_param.crypt_prefix is NULL, do not reset it to the pam_tcb
+	default value.
+	* pam_tcb/pam_tcb.8: Document this.
+
 	pam_tcb: request automatic entropy if libcrypt implements it.
 	In libxcrypt, starting with version 4.0.0, supplying a null pointer
 	as the "rbytes" argument to crypt_gensalt_ra function will cause it
