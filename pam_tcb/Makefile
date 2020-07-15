@@ -5,7 +5,7 @@ PAM_MAP = pam_tcb.map
 
 LIBSRC = \
 	pam_unix_auth.c pam_unix_acct.c pam_unix_sess.c pam_unix_passwd.c \
-	support.c compat.c yppasswd_xdr.c
+	support.c compat.c
 
 LIBOBJ = $(LIBSRC:.c=.o)
 
@@ -13,7 +13,7 @@ all: $(PAM_TCB)
 
 $(PAM_TCB): $(LIBOBJ) $(PAM_MAP)
 	$(CC) $(LDFLAGS) -shared -o $@ -Wl,--version-script=$(PAM_MAP) \
-		$(LIBOBJ) -lnsl -lcrypt -lpam -ltcb
+		$(LIBOBJ) -lcrypt -lpam -ltcb
 
 .c.o:
 	$(CC) $(CFLAGS) -fPIC -c $< -o $@

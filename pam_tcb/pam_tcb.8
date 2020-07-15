@@ -91,9 +91,7 @@ file, see
 .br
 .I /etc/tcb/
 directory structure, see
-.BR tcb (5);
-.br
-NIS and NIS+.
+.BR tcb (5).
 .SH OPTIONS
 Most of the options recognized by
 .B pam_unix
@@ -196,18 +194,11 @@ may use the second field of user's "shadow" entry (usually taken from
 or a tcb shadow file) as the password hash.
 See below for details.
 .TP
-.B nisplus
-If set,
-.B pam_tcb
-will acquire the user's EUID before obtaining the password hash.
-If you're using NIS+, you need to turn this on.
-See below for details.
-.TP
 .BR write_to =
 This option determines where
 .B pam_tcb
 should store new password hashes when changing passwords.
-Possible settings are: "passwd", "shadow", "tcb", and "nis".
+Possible settings are: "passwd", "shadow", and "tcb".
 The default is "shadow".
 .TP
 .B md5
@@ -286,30 +277,6 @@ use
 .B pw_passwd
 field as the hash;
 .in -8
-.ti -4
-if
-.RB ( nisplus
-option is set) {
-.in +8
-.ti -4
-try to acquire EUID of the user; if unsuccessful, fail;
-.br
-.ti -4
-obtain the
-.B "struct spwd"
-for the user with
-.BR getspnam (3);
-.br
-.ti -4
-regain the previous EUID;
-.br
-.ti -4
-use
-.B sp_pwdp
-field as the hash;
-.in -8
-.ti -4
-}
 .ti -4
 if
 .RB ( shadow

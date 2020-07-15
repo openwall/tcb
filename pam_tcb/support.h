@@ -79,7 +79,6 @@ enum {
 	UNIX_USE_AUTHTOK,	/* insist on reading PAM_AUTHTOK */
 
 	UNIX_SHADOW,		/* use shadow for auth */
-	UNIX_NISPLUS,		/* wish to use NIS+ for auth */
 	UNIX_PASSWD,		/* retr hashes from /etc/passwd for auth */
 
 	UNIX_OPENLOG,		/* use openlog(3)/closelog(3) calls */
@@ -110,7 +109,6 @@ enum {
 enum {
 	WRITE_PASSWD = 0,	/* write changed password to /etc/passwd */
 	WRITE_SHADOW,		/* write changed password to /etc/shadow */
-	WRITE_NIS,		/* write changed password via NIS */
 	WRITE_TCB		/* write changed password to /etc/tcb/ */
 };
 
@@ -182,7 +180,6 @@ typedef int (*cb_func) (pam_handle_t *, const void *);
 extern int _unix_fork(pam_handle_t *, cb_func, const void *);
 
 extern int _set_ctrl(pam_handle_t *, int flags, int argc, const char **argv);
-extern int _unix_comesfromsource(const char *user, int files, int nis);
 extern int _unix_blankpasswd(pam_handle_t *, const char *user);
 extern int _unix_verify_password(pam_handle_t *, const char *, const char *);
 extern int _unix_read_password(pam_handle_t *, const char *comment,

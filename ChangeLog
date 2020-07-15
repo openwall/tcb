@@ -1,3 +1,21 @@
+2018-05-22  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	pam_tcb: drop obsolete NIS/NIS+ support.
+	The GNU C library, starting with version 2.26, deprecated libnsl.
+	As result, pam_tcb no longer builds with modern versions of glibc
+	configured without --enable-obsolete-nsl option.
+	While glibc recommends to use replacement implementations based on
+	TIRPC, it's time to get rid of obsolete NIS/NIS+ support altogether.
+	* pam_tcb/yppasswd.h: Remove.
+	* pam_tcb/yppasswd_xdr.c: Likewise.
+	* pam_tcb/Makefile: Do not link with -lnsl.
+	(LIBSRC): Remove yppasswd_xdr.c.
+	* pam_tcb/pam_tcb.8: Remove references to NIS+.
+	* pam_tcb/pam_unix_passwd.c: Remove NIS/NIS+ support.
+	* pam_tcb/support.c: Likewise.
+	* pam_tcb/support.h: Likewise.
+	* progs/tcb_convert.8: Remove references to nis and nisplus.
+
 2012-05-24  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	pam_tcb: Implement i18n support.

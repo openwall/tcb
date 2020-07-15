@@ -10,9 +10,6 @@
 #include <errno.h>
 #include <time.h>
 #include <sys/stat.h>
-#include <rpc/rpc.h>
-#include <rpcsvc/yp_prot.h>
-#include <rpcsvc/ypclnt.h>
 
 #include <security/_pam_macros.h>
 #define PAM_SM_PASSWORD
@@ -25,12 +22,6 @@
 
 #include "attribute.h"
 #include "support.h"
-#include "yppasswd.h"
-
-#if !(((__GLIBC__ == 2) && (__GLIBC_MINOR__ >= 1)) || (__GLIBC__ > 2))
-extern int getrpcport(const char *host, unsigned long prognum,
-    unsigned long versnum, unsigned int proto);
-#endif
 
 #define DATA_OLD_AUTHTOK		"-UN*X-OLD-PASS"
 #define DATA_NEW_AUTHTOK		"-UN*X-NEW-PASS"
@@ -38,44 +29,6 @@ extern int getrpcport(const char *host, unsigned long prognum,
 #define TRIES				3
 
 #define TMP_SUFFIX			".tmp"
-
-static char *get_nis_server(pam_handle_t *pamh)
-{
-	char *master;
-	char *domain;
-	int port, result;
-
-	if ((result = yp_get_default_domain(&domain)) != 0) {
-		pam_syslog(pamh, LOG_WARNING,
-		    "Unable to get local yp domain: %s",
-		    yperr_string(result));
-		return NULL;
-	}
-
-	if ((result = yp_master(domain, "passwd.byname", &master)) != 0) {
-		pam_syslog(pamh, LOG_WARNING,
-		    "Unable to find the master yp server: %s",
-		    yperr_string(result));
-		return NULL;
-	}
-
-	port = getrpcport(master, YPPASSWDPROG, YPPASSWDPROC_UPDATE,
-	    IPPROTO_UDP);
-
-	if (port == 0) {
-		pam_syslog(pamh, LOG_WARNING,
-		    "yppasswdd not running on NIS master host");
-		return NULL;
-	}
-
-	if (port >= IPPORT_RESERVED) {
-		pam_syslog(pamh, LOG_WARNING,
-		    "yppasswdd running on illegal port");
-		return NULL;
-	}
-
-	return master;
-}
 
 static int cpmod(const char *old, const char *new)
 {
@@ -275,71 +228,6 @@ static int update_shadow(pam_handle_t *pamh, const char *forwho,
 	return retval;
 }
 
-static int update_nis(pam_handle_t *pamh, unused const char *forwho,
-    const char *fromwhat, char *towhat, struct passwd *pw)
-{
-	struct timeval timeout;
-	struct yppasswd yppw;
-	char *master;
-	CLIENT *client;
-	enum clnt_stat result;
-	int status;
-
-	D(("called"));
-
-	/* Make RPC call to NIS server */
-	master = get_nis_server(pamh);
-	if (!master)
-		return PAM_TRY_AGAIN;
-
-	/* Initialize password information */
-	yppw.newpw.pw_passwd = pw->pw_passwd;
-	yppw.newpw.pw_name = pw->pw_name;
-	yppw.newpw.pw_uid = pw->pw_uid;
-	yppw.newpw.pw_gid = pw->pw_gid;
-	yppw.newpw.pw_gecos = pw->pw_gecos;
-	yppw.newpw.pw_dir = pw->pw_dir;
-	yppw.newpw.pw_shell = pw->pw_shell;
-	yppw.oldpass = (char *)fromwhat;
-	yppw.newpw.pw_passwd = towhat;
-
-	D(("set password %s for %s", yppw.newpw.pw_passwd, forwho));
-
-	/*
-	 * The yppasswd.x file said `unix authentication required',
-	 * so I added it. This is the only reason it is in here.
-	 * My yppasswdd doesn't use it, but maybe some others out there
-	 * do.                                        --okir
-	 */
-	client = clnt_create(master, YPPASSWDPROG, YPPASSWDVERS, "udp");
-	client->cl_auth = authunix_create_default();
-	memset(&status, 0, sizeof(status));
-	timeout.tv_sec = 25;
-	timeout.tv_usec = 0;
-	result = clnt_call(client, YPPASSWDPROC_UPDATE,
-	    (xdrproc_t)xdr_yppasswd, (char *)&yppw,
-	    (xdrproc_t)xdr_int, (char *)&status, timeout);
-
-	status |= result;
-	if (status) {
-		pam_syslog(pamh, LOG_ERR,
-		    "Failed to change NIS password on %s%s%s",
-		    master,
-		    result ? ": " : "",
-		    result ? clnt_sperrno(result) : "");
-	}
-	pam_syslog(pamh, LOG_INFO, "Password%s changed on %s",
-	    status ? " not" : "", master);
-
-	auth_destroy(client->cl_auth);
-	clnt_destroy(client);
-
-	if (status)
-		return PAM_TRY_AGAIN;
-
-	return PAM_SUCCESS;
-}
-
 static char *get_pwfile(const char *forwho)
 {
 	char *file;
@@ -372,9 +260,6 @@ static int do_setpass(pam_handle_t *pamh, const char *forwho,
 	endpwent();
 	if (!pw)
 		return PAM_AUTHTOK_ERR;
-
-	if (pam_unix_param.write_to == WRITE_NIS)
-		return update_nis(pamh, forwho, fromwhat, towhat, pw);
 
 	file = get_pwfile(forwho);
 	if (!file) {

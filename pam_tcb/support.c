@@ -13,7 +13,6 @@
 #include <crypt.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <rpcsvc/ypclnt.h>
 
 #include <security/_pam_macros.h>
 #include <security/pam_modules.h>
@@ -39,49 +38,11 @@ static void data_cleanup(unused pam_handle_t *pamh, void *data,
 	_pam_delete(data);
 }
 
-static int nis_getspnam(struct spwd **spw, const struct passwd *pw)
-{
-	uid_t old_euid, old_uid;
-
-	D(("called"));
-
-	old_euid = geteuid();
-	old_uid = getuid();
-	if (old_uid == pw->pw_uid)
-		setreuid(old_euid, old_uid);
-	else {
-		setreuid(0, -1);
-		if (setreuid(-1, pw->pw_uid) == -1) {
-			setreuid(-1, 0);
-			setreuid(0, -1);
-			if (setreuid(-1, pw->pw_uid) == -1)
-				return -1;
-		}
-	}
-
-	*spw = getspnam(pw->pw_name);
-	endspent();
-	if (old_uid == pw->pw_uid)
-		setreuid(old_uid, old_euid);
-	else {
-		if (setreuid(-1, 0) == -1)
-			setreuid(old_uid, -1);
-		setreuid(-1, old_euid);
-	}
-
-	return 0;
-}
-
 int unix_getspnam(struct spwd **spw, const struct passwd *pw)
 {
 	D(("called"));
 
-	if (on(UNIX_NISPLUS) && !strcmp(pw->pw_passwd, "*NP*") &&
-	    !nis_getspnam(spw, pw))
-		return 0;
-
 	if (on(UNIX_SHADOW)) {
-		D(("in non-NIS shadow"));
 		*spw = getspnam(pw->pw_name);
 		endspent();
 		return 0;
@@ -234,42 +195,8 @@ static int user_in_file(pam_handle_t *pamh, const char *file,
 	return 1;
 }
 
-static int user_in_nisdb(const char *user, char *hash)
-{
-	char *userinfo = NULL, *domain = NULL, *colon;
-	int len, i;
-
-	len = yp_get_default_domain(&domain);
-	if (len != YPERR_SUCCESS)
-		return 0;
-
-	len = yp_bind(domain);
-	if (len != YPERR_SUCCESS)
-		return 0;
-	i = yp_match(domain, "passwd.byname", user, strlen(user),
-	    &userinfo, &len);
-	yp_unbind(domain);
-	if (i != YPERR_SUCCESS)
-		return 0;
-
-	colon = strchr(userinfo, ':');
-	if (!colon) {
-		free(userinfo);
-		return 0;
-	}
-
-	*hash = 0;
-	strncat(hash, colon + 1, HASH_PREFIX_SIZE - 1);
-
-	free(userinfo);
-	return 1;
-}
-
 int _unix_user_in_db(pam_handle_t *pamh, const char *user, char *hash)
 {
-	if (pam_unix_param.write_to == WRITE_NIS)
-		return user_in_nisdb(user, hash);
-
 	if (pam_unix_param.write_to == WRITE_PASSWD)
 		return user_in_file(pamh, PASSWD_FILE, user, hash);
 
@@ -900,7 +827,6 @@ static struct bool_names {
 	{"not_set_pass", UNIX_NOT_SET_PASS, 0},
 	{"use_authtok", UNIX_USE_AUTHTOK, 0},
 	{"shadow", UNIX_SHADOW, 0},
-	{"nisplus", UNIX_NISPLUS, 0},
 	{"passwd", UNIX_PASSWD, 0},
 	{"openlog", UNIX_OPENLOG, 0},
 	{"noopenlog", UNIX_OPENLOG, 1},
@@ -1068,8 +994,6 @@ int _set_ctrl(pam_handle_t *pamh, int flags, int argc, const char **argv)
 			pam_unix_param.write_to = WRITE_SHADOW;
 		else if (!strcmp(param, "tcb"))
 			pam_unix_param.write_to = WRITE_TCB;
-		else if (!strcmp(param, "nis"))
-			pam_unix_param.write_to = WRITE_NIS;
 		else {
 			pam_syslog(pamh, LOG_ERR,
 			    "Invalid write_to argument: %s", param);
