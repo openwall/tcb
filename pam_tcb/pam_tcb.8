@@ -212,7 +212,7 @@ When updating a user's password, generate the salt with the specified
 .I prefix
 (which determines the hashing method to use).
 Unless the underlying libcrypt library implements a default hashing method,
-the default is "$2y$", which requests
+the default is "$2b$", which requests
 .BR bcrypt ,
 a Blowfish-based hashing method, which supports variable iteration counts.
 .TP

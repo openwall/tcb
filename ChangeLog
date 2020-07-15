@@ -1,3 +1,14 @@
+2018-07-07  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	pam_tcb: change the default prefix from $2y$ to $2b$ to be friendlier
+	to OpenBSD.
+	This does not affect builds with libxcrypt >= 4.1.0 that provides
+	CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX feature test macro.
+	* pam_tcb/support.c (_set_ctrl)
+	[!CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX]: Replace "$2y$"
+	with "$2b$".
+	* pam_tcb/pam_tcb.8 (prefix): Likewise.
+
 2018-06-26  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	pam_tcb: request automatic prefix if libcrypt implements it.
