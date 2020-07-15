@@ -12,6 +12,15 @@
 # include "compat.h"
 #endif
 
+#if defined(ENABLE_NLS) && defined(NLS_PACKAGE)
+#include <libintl.h>
+#define _(msgid) dgettext(NLS_PACKAGE, msgid)
+#define N_(msgid) msgid
+#else
+#define _(msgid) (msgid)
+#define N_(msgid) msgid
+#endif /* ENABLE_NLS && NLS_PACKAGE */
+
 #define PASSWD_FILE			"/etc/passwd"
 #define SHADOW_FILE			"/etc/shadow"
 
@@ -20,35 +29,35 @@
 
 /* Password prompt to use for authentication */
 #define PROMPT_PASS \
-	"Password: "
+	_("Password: ")
 
 /* Prompts to use for password changes */
 #define PROMPT_OLDPASS \
-	"Enter current password: "
+	_("Enter current password: ")
 #define PROMPT_NEWPASS1 \
-	"Enter new password: "
+	_("Enter new password: ")
 #define PROMPT_NEWPASS2 \
-	"Re-type new password: "
+	_("Re-type new password: ")
 
 /* Possible messages during account management */
 #define MESSAGE_ACCT_EXPIRED \
-	"Your account has expired; please contact your system administrator."
+	_("Your account has expired; please contact your system administrator.")
 #define MESSAGE_PASS_EXPIRED \
-	"You are required to change your password immediately."
+	_("You are required to change your password immediately.")
 #define MESSAGE_WARN_EXPIRE \
-	"Warning: your password will expire in %d day%s."
+	_("Warning: your password will expire in %d day%s.")
 
 /* Possible messages during password changes */
 #define MESSAGE_CHANGING \
-	"Changing password for %s."
+	_("Changing password for %s.")
 #define MESSAGE_PASS_SAME \
-	"Password unchanged."
+	_("Password unchanged.")
 #define MESSAGE_PASS_NONE \
-	"No password supplied."
+	_("No password supplied.")
 #define MESSAGE_TOOSOON \
-	"You must wait longer to change your password."
+	_("You must wait longer to change your password.")
 #define MESSAGE_MISTYPED \
-	"Sorry, passwords do not match."
+	_("Sorry, passwords do not match.")
 
 /*
  * Here are the various boolean options recognized by the unix module.

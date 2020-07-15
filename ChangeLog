@@ -1,3 +1,15 @@
+2012-05-24  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	pam_tcb: Implement i18n support.
+	Linux-PAM starting with release 0.81 implements i18n support using
+	gettext.  This change extends i18n support to pam_tcb.
+	The i18n support is not enabled by default, define both ENABLE_NLS and
+	NLS_PACKAGE macros to enable it.  When NLS_PACKAGE macro is defined to
+	"Linux-PAM", pam_tcb will re-use translated messages from Linux-PAM.
+	* pam_tcb/support.h: Mark all messages for translation.  Pass through
+	dgettext all messages marked for translation when both ENABLE_NLS and
+	NLS_PACKAGE macros are defined.
+
 2011-07-17  Solar Designer  <solar at owl.openwall.com>
 
 	* tcb.spec: 1.1, "Requires: glibc-crypt_blowfish >= 1.2".
