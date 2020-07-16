@@ -1,5 +1,9 @@
 2020-07-16  Dmitry V. Levin  <ldv at owl.openwall.com>
 
+	tcb_chkpwd: remove the last remaining piece of NIS+ support.
+	* progs/tcb_chkpwd.c (unix_verify_password): Remove special handling
+	of NIS+ password entries.
+
 	tcb_unconvert: print error diagnostics if the final chown fails.
 	* progs/tcb_unconvert.c (main): Print error diagnostics in an unlikely
 	case of an error returned by the final chown invocation.  This does

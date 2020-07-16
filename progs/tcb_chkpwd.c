@@ -51,17 +51,6 @@ static int unix_verify_password(const char *user, const char *pass, int nullok)
 			endspent();
 			if (spw)
 				stored_hash = strdup(spw->sp_pwdp);
-		} else if (!strcmp(pw->pw_passwd, "*NP*")) {
-			uid_t old_uid;
-
-			old_uid = geteuid();
-			seteuid(pw->pw_uid);
-			spw = getspnam(user);
-			endspent();
-			seteuid(old_uid);
-
-			if (spw)
-				stored_hash = strdup(spw->sp_pwdp);
 		} else {
 			/* strdup can fail, it's fail-close */
 			stored_hash = strdup(pw->pw_passwd);
