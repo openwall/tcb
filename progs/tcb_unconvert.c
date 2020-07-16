@@ -242,7 +242,8 @@ int main(void)
 
 	status = copy_from_tcb();
 
-	chown(TCB_DIR, 0, st.st_gid);
+	if (chown(TCB_DIR, 0, st.st_gid))
+		perror("chown: " TCB_DIR);
 
 	return status ? 1 : 0;
 }

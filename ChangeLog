@@ -1,3 +1,11 @@
+2020-07-16  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	tcb_unconvert: print error diagnostics if the final chown fails.
+	* progs/tcb_unconvert.c (main): Print error diagnostics in an unlikely
+	case of an error returned by the final chown invocation.  This does
+	not affect the exit status of tcb_unconvert, though, since the final
+	chown does not affect the result of conversion.
+
 2020-07-15  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	pam_tcb: fix harmless -Wmissing-field-initializers compilation warning.
