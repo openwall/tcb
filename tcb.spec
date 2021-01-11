@@ -2,7 +2,7 @@
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
-Version: 1.1.9.1
+Version: 1.2
 Release: owl1
 License: BSD or GPL
 Group: System Environment/Base
@@ -89,6 +89,11 @@ rmdir /sbin/chkpwd.d
 %_libdir/libtcb.so
 
 %changelog
+* Mon Jan 11 2021 Solar Designer <solar-at-owl.openwall.com> 1.2-owl1
+- 1.2 release with Dmitry's post-1.1.9.1 cleanups implemented in mid-2020 and
+described in ChangeLog, most notably:
++ tcb_chkpwd: remove the last remaining piece of NIS+ support.
+
 * Sat Jul 07 2018 Dmitry V. Levin <ldv-at-owl.openwall.com> 1.1.9.1-owl1
 - pam_tcb:
 + Implemented i18n support which is off by default, it can be enabled by
