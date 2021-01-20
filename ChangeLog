@@ -1,3 +1,7 @@
+2021-01-20  Solar Designer  <solar at owl.openwall.com>
+
+	* README: Mention libxcrypt, use https URLs.
+
 2021-01-11  Solar Designer  <solar at owl.openwall.com>
 
 	* tcb.spec: 1.2.

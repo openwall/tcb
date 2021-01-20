@@ -1,14 +1,18 @@
-The tcb package contains core components of our "tcb" suite
-implementing the alternative password shadowing scheme on Openwall
-GNU/*/Linux (Owl).  It is being made available separately from Owl
-primarily for use by other distributions.  For more information,
-please refer to:
+The tcb package contains core components of our tcb suite implementing the
+alternative password shadowing scheme on Openwall GNU/*/Linux (Owl).  It is
+being made available separately from Owl primarily for use by other
+distributions.  For more information please refer to:
 
-http://www.openwall.com/tcb/
+https://www.openwall.com/tcb/
 
-You need to have the password hashing framework introduced with
-crypt_blowfish patched into glibc to compile and use this.
+To compile and use this you either need recent libxcrypt (which adopted the
+password hashing API we had introduced in Owl) or our crypt_blowfish patched
+into glibc (which is how we had introduced that API originally).
+
+libxcrypt is available at:
+
+https://github.com/besser82/libxcrypt
 
 crypt_blowfish is available at:
 
-http://www.openwall.com/crypt/
+https://www.openwall.com/crypt/
