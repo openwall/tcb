@@ -1,6 +1,7 @@
 include ../Make.defs
 
-PAM_TCB = pam_tcb.so
+PAM_SO_SUFFIX =
+PAM_TCB = pam_tcb.so$(PAM_SO_SUFFIX)
 PAM_MAP = pam_tcb.map
 
 LIBSRC = \
@@ -31,15 +32,15 @@ install:
 	$(INSTALL) -m 644 pam_tcb.8 $(DESTDIR)$(MANDIR)/man8/
 
 install-pam_unix: install
-	ln -s $(PAM_TCB) $(DESTDIR)$(SLIBDIR)/security/pam_unix.so
-	ln -s $(PAM_TCB) $(DESTDIR)$(SLIBDIR)/security/pam_unix_acct.so
-	ln -s $(PAM_TCB) $(DESTDIR)$(SLIBDIR)/security/pam_unix_auth.so
-	ln -s $(PAM_TCB) $(DESTDIR)$(SLIBDIR)/security/pam_unix_passwd.so
-	ln -s $(PAM_TCB) $(DESTDIR)$(SLIBDIR)/security/pam_unix_session.so
+	ln -s $(PAM_TCB) $(DESTDIR)$(SLIBDIR)/security/pam_unix.so$(PAM_SO_SUFFIX)
+	ln -s $(PAM_TCB) $(DESTDIR)$(SLIBDIR)/security/pam_unix_acct.so$(PAM_SO_SUFFIX)
+	ln -s $(PAM_TCB) $(DESTDIR)$(SLIBDIR)/security/pam_unix_auth.so$(PAM_SO_SUFFIX)
+	ln -s $(PAM_TCB) $(DESTDIR)$(SLIBDIR)/security/pam_unix_passwd.so$(PAM_SO_SUFFIX)
+	ln -s $(PAM_TCB) $(DESTDIR)$(SLIBDIR)/security/pam_unix_session.so$(PAM_SO_SUFFIX)
 	$(INSTALL) -m 644 pam_unix.8 $(DESTDIR)$(MANDIR)/man8/
 
 install-pam_pwdb: install
-	ln -s $(PAM_TCB) $(DESTDIR)$(SLIBDIR)/security/pam_pwdb.so
+	ln -s $(PAM_TCB) $(DESTDIR)$(SLIBDIR)/security/pam_pwdb.so$(PAM_SO_SUFFIX)
 	$(INSTALL) -m 644 pam_pwdb.8 $(DESTDIR)$(MANDIR)/man8/
 
 clean:

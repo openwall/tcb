@@ -28,6 +28,12 @@
 	storage for the underlying directory stream in this case.
 	* LICENSE: Update copyright for this contribution.
 
+	pam_tcb: Allow setting a custom PAM_SO_SUFFIX during build.
+	At least FreeBSD and NetBSD are using OpenPAM, which needs
+	the ability to specify a PAM_SO_SUFFIX to externally built
+	modules.
+	* pam_tcb/Makefile: Honor PAM_SO_SUFFIX variable.
+
 2021-09-25  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	Add github CI.
