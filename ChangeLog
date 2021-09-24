@@ -13,6 +13,14 @@
 	libnss_tcb: Drop unneeded LIBNSL from linked libraries.
 	* libs/Makefile: Stop linking libnss_tcb.so.2 against LIBNSL.
 
+	make: Allow install and mkdir programs to be user configurable.
+	Also pass an explicit dirmode to MKDIR.
+	* Make.defs: Allow for configurable install and mkdir programs.
+	* libs/Makefile: Likewise.
+	* misc/Makefile: Likewise.
+	* pam_tcb/Makefile: Likewise.
+	* progs/Makefile: Likewise.
+
 2021-09-25  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	Add github CI.

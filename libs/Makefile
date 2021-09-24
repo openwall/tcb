@@ -32,13 +32,13 @@ $(LIBNSS): nss.o $(NSS_MAP) $(LIBTCB_LONG)
 install-non-root: install
 
 install:
-	mkdir -p $(DESTDIR)$(SLIBDIR)
-	mkdir -p $(DESTDIR)$(LIBDIR)
-	install -m $(SHLIBMODE) $(LIBTCB_LONG) $(DESTDIR)$(SLIBDIR)/
+	$(MKDIR) -p -m 755 $(DESTDIR)$(SLIBDIR)
+	$(MKDIR) -p -m 755 $(DESTDIR)$(LIBDIR)
+	$(INSTALL) -m $(SHLIBMODE) $(LIBTCB_LONG) $(DESTDIR)$(SLIBDIR)/
 	ln -sf $(LIBTCB_LONG) $(DESTDIR)$(SLIBDIR)/$(LIBTCB)
 	ln -sf ../..$(SLIBDIR)/$(LIBTCB) $(DESTDIR)$(LIBDIR)/libtcb.so
-	install -m $(SHLIBMODE) $(LIBNSS) $(DESTDIR)$(SLIBDIR)/
-	install -m 644 $(LIBTCB_A) $(DESTDIR)$(LIBDIR)/
+	$(INSTALL) -m $(SHLIBMODE) $(LIBNSS) $(DESTDIR)$(SLIBDIR)/
+	$(INSTALL) -m 644 $(LIBTCB_A) $(DESTDIR)$(LIBDIR)/
 
 clean:
 	rm -f *.o *~ $(LIBTCB)* libtcb.so $(LIBNSS) *.a

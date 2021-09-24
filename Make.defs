@@ -1,4 +1,7 @@
 CC = gcc
+INSTALL = install -p
+MKDIR = mkdir
+
 DBGFLAG = #-ggdb
 ifndef CFLAGS
 CFLAGS = -O2
