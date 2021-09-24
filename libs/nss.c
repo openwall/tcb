@@ -11,7 +11,18 @@
 
 #include "tcb.h"
 
+/* readdir_r(3) is deprecated since glibc 2.24 */
+#if defined __GLIBC_PREREQ && __GLIBC_PREREQ(2, 24)
+#define USE_READDIR 1
+#else
+#define USE_READDIR 0
+#endif
+
+#if USE_READDIR
+static __thread DIR *tcbdir = NULL;
+#else
 static DIR *tcbdir = NULL;
+#endif
 
 int _nss_tcb_setspent(void)
 {
@@ -96,7 +107,10 @@ int _nss_tcb_getspnam_r(const char *name, struct spwd *__result_buf,
 int _nss_tcb_getspent_r(struct spwd *__result_buf,
     char *__buffer, size_t __buflen, struct spwd **__result)
 {
-	struct dirent entry, *result;
+#if !USE_READDIR
+	struct dirent entry;
+#endif
+	struct dirent *result;
 	off_t currpos;
 	int retval, saved_errno;
 
@@ -108,8 +122,15 @@ int _nss_tcb_getspent_r(struct spwd *__result_buf,
 
 	do {
 		currpos = telldir(tcbdir);
+#if USE_READDIR
+		saved_errno = errno;
+		errno = 0;
+		result = readdir(tcbdir);
+		if (!result && errno) {
+#else
 		if (readdir_r(tcbdir, &entry, &result)) {
 			saved_errno = errno;
+#endif
 			closedir(tcbdir);
 			errno = saved_errno;
 			tcbdir = NULL;
@@ -121,6 +142,9 @@ int _nss_tcb_getspent_r(struct spwd *__result_buf,
 			tcbdir = NULL;
 			return NSS_STATUS_NOTFOUND;
 		}
+#if USE_READDIR
+		errno = saved_errno;
+#endif
 	} while (!strcmp(result->d_name, ".") ||
 	    !strcmp(result->d_name, "..") || result->d_name[0] == ':');
 
