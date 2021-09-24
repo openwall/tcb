@@ -4,6 +4,10 @@ PAM_SO_SUFFIX =
 PAM_TCB = pam_tcb.so$(PAM_SO_SUFFIX)
 PAM_MAP = pam_tcb.map
 
+ifneq ($(PAM_SO_SUFFIX),)
+PAM_TCB_SONAME = -Wl,-soname,$(PAM_TCB)
+endif
+
 LIBSRC = \
 	pam_unix_auth.c pam_unix_acct.c pam_unix_sess.c pam_unix_passwd.c \
 	support.c compat.c
@@ -13,8 +17,8 @@ LIBOBJ = $(LIBSRC:.c=.o)
 all: $(PAM_TCB)
 
 $(PAM_TCB): $(LIBOBJ) $(PAM_MAP)
-	$(CC) $(LDFLAGS) -shared -o $@ -Wl,--version-script=$(PAM_MAP) \
-		$(LIBOBJ) -lcrypt -lpam -ltcb
+	$(CC) $(LDFLAGS) -shared -o $@ $(PAM_TCB_SONAME) \
+		-Wl,--version-script=$(PAM_MAP) $(LIBOBJ) -lcrypt -lpam -ltcb
 
 .c.o:
 	$(CC) $(CFLAGS) -fPIC -c $< -o $@
@@ -44,4 +48,4 @@ install-pam_pwdb: install
 	$(INSTALL) -m 644 pam_pwdb.8 $(DESTDIR)$(MANDIR)/man8/
 
 clean:
-	rm -f *.o *~ $(PAM_TCB)
+	rm -f *.o *~ $(PAM_TCB)*
