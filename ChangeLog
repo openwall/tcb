@@ -21,6 +21,13 @@
 	* pam_tcb/Makefile: Likewise.
 	* progs/Makefile: Likewise.
 
+	libnss_tcb: Use readdir(3) with glibc >= 2.24.
+	* libs/nss.c (_nss_tcb_getspnam_r): glibc, since version 2.24,
+	has deprecated readdir_r(3).  It is recommended that applications
+	use readdir(3) instead of readdir_r(3).  Also use thread local
+	storage for the underlying directory stream in this case.
+	* LICENSE: Update copyright for this contribution.
+
 2021-09-25  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	Add github CI.
