@@ -23,8 +23,8 @@ $(LIBTCB_LONG): libtcb.o $(LIB_MAP)
 	ln -sf $(LIBTCB) libtcb.so
 
 $(LIBNSS): nss.o $(NSS_MAP) $(LIBTCB_LONG)
-	$(CC) $(LDFLAGS) -shared -o $@ -Wl,--version-script=$(NSS_MAP) \
-		$< $(LIBNSL) -ltcb
+	$(CC) $(LDFLAGS) -shared -o $@ -Wl,-soname,$(LIBNSS) \
+		-Wl,--version-script=$(NSS_MAP) $< $(LIBNSL) -ltcb
 
 .c.o:
 	$(CC) $(CFLAGS) -fPIC -c $< -o $@
