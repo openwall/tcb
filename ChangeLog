@@ -10,6 +10,9 @@
 	libnss_tcb: Apply proper soname during linking.
 	* libs/Makefile: Apply proper soname to libnss_tcb.so.2.
 
+	libnss_tcb: Drop unneeded LIBNSL from linked libraries.
+	* libs/Makefile: Stop linking libnss_tcb.so.2 against LIBNSL.
+
 2021-09-25  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	Add github CI.
