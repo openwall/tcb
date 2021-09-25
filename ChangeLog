@@ -1,5 +1,14 @@
 2021-09-25  Dmitry V. Levin  <ldv at owl.openwall.com>
 
+	Add github CI.
+	This enables a whitespace check and a bunch of build checks using
+	several versions of gcc and clang.
+	* .gitattributes: New file.
+	* .github/workflows/ci.yml: Likewise.
+	* ci/install-dependencies.sh: Likewise.
+	* ci/run-build-and-tests.sh: Likewise.
+	* LICENSE: Mention the license of CI scripts.
+
 	* .gitignore: New file.
 
 	* pam_tcb/pam_tcb.8: Remove trailing whitespace.

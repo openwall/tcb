@@ -12,6 +12,12 @@ Copyright (c) 1996 Elliot Lee, Red Hat Software
 Copyright (c) 1999 Jan Rêkorajski
 Copyright (c) Thorsten Kukuk
 
+Files in ci directory (install-dependencies.sh and run-build-and-tests.sh)
+are provided under the terms of the GNU General Public License version 2 or
+later.  These files are not included in tcb release tarballs.
+
+The rest of the files in this package fall under the following terms:
+
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
 are met:
