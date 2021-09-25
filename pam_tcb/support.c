@@ -351,7 +351,7 @@ static int unix_run_helper_binary(const char *user, const char *pass)
 			len = strlen(pass) + 1;
 			if (write_loop(fds[1], pass, len) != len)
 				fail = 1;
-		}		
+		}
 		pass = NULL;
 		close(fds[1]);
 		/* wait for helper to complete */
