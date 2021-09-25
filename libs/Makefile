@@ -24,7 +24,7 @@ $(LIBTCB_LONG): libtcb.o $(LIB_MAP)
 
 $(LIBNSS): nss.o $(NSS_MAP) $(LIBTCB_LONG)
 	$(CC) $(LDFLAGS) -shared -o $@ -Wl,-soname,$(LIBNSS) \
-		-Wl,--version-script=$(NSS_MAP) $< $(LIBNSL) -ltcb
+		-Wl,--version-script=$(NSS_MAP) $< -ltcb
 
 .c.o:
 	$(CC) $(CFLAGS) -fPIC -c $< -o $@
