@@ -1,0 +1,11 @@
+*~
+*.o
+/libs/libnss_tcb.so.2
+/libs/libtcb.a
+/libs/libtcb.so
+/libs/libtcb.so.0
+/libs/libtcb.so.0.*
+/pam_tcb/pam_tcb.so
+/progs/tcb_chkpwd
+/progs/tcb_convert
+/progs/tcb_unconvert

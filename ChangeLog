@@ -1,5 +1,7 @@
 2021-09-25  Dmitry V. Levin  <ldv at owl.openwall.com>
 
+	* .gitignore: New file.
+
 	* pam_tcb/pam_tcb.8: Remove trailing whitespace.
 	* pam_tcb/support.c: Likewise.
 
