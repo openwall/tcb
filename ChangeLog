@@ -39,6 +39,9 @@
 	* pam_tcb/Makefile: Apply proper soname with PAM_SO_SUFFIX
 	not being empty. Adapt clean target also.
 
+	* .gitignore: Adapt ignore rule for pam_tcb.so with
+	PAM_SO_SUFFIX set.
+
 2021-09-25  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	Add github CI.
