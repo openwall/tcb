@@ -1,0 +1,3 @@
+# Access groups for the tcb password shadowing scheme
+g chkpwd @LIBEXECDIR@/chkpwd
+g shadow /etc/tcb

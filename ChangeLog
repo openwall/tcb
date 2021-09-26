@@ -15,6 +15,20 @@
 
 	* ci/run-build-and-tests.sh: Build with "-Werror" enabled on CI.
 
+	misc: Add preset file for systemd-sysusers.
+	Such preset files are used with distributions that rely
+	on systemd-sysusers to ensure all required system users
+	and system groups are present on system boot.
+	* Make.defs: Add preset for SYSUSERSDIR.
+	* Makefile: Add (optional) top-level "install-sysusers" and
+	"install-sysusers-auth" targets.
+	* misc/Makefile: Likewise, with also adding build and clean
+	targets.
+	"install-sysusers-auth" targets.
+	* misc/tcb.sysusers.in: New file.
+	* misc/tcb-auth.sysusers: New file.
+	* .gitignore: Add build output from "misc" directory.
+
 2021-09-25  Björn Esser  <besser82 at fedoraproject.org>
 
 	* pam_tcb/support.c (_set_ctrl): Request automatic prefix only if

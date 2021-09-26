@@ -1,0 +1,4 @@
+# Additional access group for the tcb password shadowing scheme
+# when "TCB_AUTH_GROUP yes" is in use.
+# The "root" user is guaranteed to be present on any system.
+g auth /etc/tcb/root
