@@ -5,6 +5,7 @@
 /libs/libtcb.so
 /libs/libtcb.so.0
 /libs/libtcb.so.0.*
+/misc/tcb.sysusers
 /pam_tcb/pam_tcb.so*
 /progs/tcb_chkpwd
 /progs/tcb_convert

@@ -22,5 +22,6 @@ SLIBDIR = /lib
 LIBDIR = /usr/lib
 LIBEXECDIR = /usr/libexec
 MANDIR = /usr/man
+SYSUSERSDIR = /usr/lib/sysusers.d
 
 SHLIBMODE = 755
