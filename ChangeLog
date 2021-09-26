@@ -1,4 +1,4 @@
-2021-09-25  Björn Esser  <besser82 at fedoraporject.org>
+2021-09-25  Björn Esser  <besser82 at fedoraproject.org>
 
 	* pam_tcb/support.c (_set_ctrl): Request automatic prefix only if
 	libcrypt really implements it.
