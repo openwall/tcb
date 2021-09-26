@@ -840,7 +840,8 @@ int _set_ctrl(pam_handle_t *pamh, int flags, int argc, const char **argv)
 			return 0;
 	param = get_optval("prefix=", the_cmdline_opts);
 	pam_unix_param.crypt_prefix = param;
-#ifndef CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX
+#if !defined(CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX) || \
+    !CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX
 	if (!pam_unix_param.crypt_prefix)
 		pam_unix_param.crypt_prefix = "$2b$";
 #endif

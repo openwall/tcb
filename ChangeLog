@@ -1,3 +1,12 @@
+2021-09-25  Björn Esser  <besser82 at fedoraporject.org>
+
+	* pam_tcb/support.c (_set_ctrl): Request automatic prefix only if
+	libcrypt really implements it.
+	In some specific, but unusual, build-time configurations of libxcrypt
+	the CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX feature-test macro is
+	defined to 0, which means libxcrypt does not provide a best-choice
+	default prefix.
+
 2021-09-25  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	Add github CI.
