@@ -576,7 +576,7 @@ static int do_record_failure(pam_handle_t *pamh, const char *user, int retval)
 			new->user = strdup(getpwnam(user) ?
 			    user : "UNKNOWN USER");
 			new->id = getuid();
-			new->name = strdup(getlogin() ?: "");
+			new->name = strdup(pam_tcb_getlogin());
 
 			/* any previous failures for this user? */
 			if (pam_get_data(pamh, data_name, &item)
@@ -847,7 +847,7 @@ int _set_ctrl(pam_handle_t *pamh, int flags, int argc, const char **argv)
 #endif
 
 	param = get_optval("helper=", the_cmdline_opts);
-	pam_unix_param.helper = param ?: CHKPWD_HELPER;
+	pam_unix_param.helper = param ? param : CHKPWD_HELPER;
 
 	param = get_optval("count=", the_cmdline_opts);
 	if (param) {

@@ -42,7 +42,7 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags,
 	}
 
 	pam_syslog(pamh, LOG_INFO, "Session opened for %s by %s(uid=%u)",
-	    user, getlogin() ?: "", getuid());
+	    user, pam_tcb_getlogin(), getuid());
 
 	return PAM_SUCCESS;
 }

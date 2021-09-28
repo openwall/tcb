@@ -128,7 +128,7 @@ out_save_retval:
 		pam_syslog(pamh, retval == PAM_SUCCESS ? LOG_INFO : LOG_NOTICE,
 		    "Authentication %s for %s from %s(uid=%u)",
 		    retval == PAM_SUCCESS ? "passed" : "failed", user,
-		    getlogin() ?: "", getuid());
+		    pam_tcb_getlogin(), getuid());
 	}
 
 	D(("done [%s]", pam_strerror(pamh, retval)));

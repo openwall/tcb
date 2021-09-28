@@ -435,7 +435,7 @@ out:
 	    "Authentication %s for %s from %s(uid=%u)"
 	    ", for password management",
 	    retval == PAM_SUCCESS ? "passed" : "failed", user,
-	    getlogin() ?: "", getuid());
+	    pam_tcb_getlogin(), getuid());
 
 	return retval;
 }
@@ -576,7 +576,7 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 	if (retval == PAM_SUCCESS) {
 		pam_syslog(pamh, LOG_INFO,
 		    "Password for %s changed by %s(uid=%u)",
-		    user, getlogin() ?: "", getuid());
+		    user, pam_tcb_getlogin(), getuid());
 	}
 
 	D(("retval was %d", retval));
