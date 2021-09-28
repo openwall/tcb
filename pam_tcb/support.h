@@ -178,4 +178,13 @@ extern int unix_getspnam(struct spwd **, const struct passwd *);
 extern char *crypt_wrapper(pam_handle_t *, const char *, const char *);
 extern char *do_crypt(pam_handle_t *, const char *);
 
+/* Helper function around getlogin() */
+static inline char *pam_tcb_getlogin(void)
+{
+	char *login = getlogin();
+	if (!login)
+		return "";
+	return login;
+}
+
 #endif

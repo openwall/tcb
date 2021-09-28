@@ -1,3 +1,15 @@
+2021-09-30  Björn Esser  <besser82 at fedoraproject.org>
+
+	pam_tcb: Fix "-Wpedantic".
+	* pam_tcb/pam_unix_auth.c (pam_sm_authenticate): ISO C forbids
+	omitting the middle term of a '?:' expression.
+	* pam_tcb/pam_unix_sess.c (pam_sm_open_session): Likewise.
+	* pam_tcb/pam_unix_passwd.c (pam_sm_chauthtok): Likewise.
+	* pam_tcb/pam_unix_passwd.c (unix_prelim): Likewise.
+	* pam_tcb/support.c (_set_ctrl): Likewise.
+	* pam_tcb/support.h (pam_tcb_getlogin): New function.
+	Small static inline wrapper around getlogin(3).
+
 2021-09-25  Björn Esser  <besser82 at fedoraproject.org>
 
 	* pam_tcb/support.c (_set_ctrl): Request automatic prefix only if
