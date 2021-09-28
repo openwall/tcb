@@ -13,6 +13,8 @@
 	* Make.defs: Add "-Wextra" to default CFLAGS.  Add an option to
 	enable "-Werror" also.
 
+	* ci/run-build-and-tests.sh: Build with "-Werror" enabled on CI.
+
 2021-09-25  Björn Esser  <besser82 at fedoraproject.org>
 
 	* pam_tcb/support.c (_set_ctrl): Request automatic prefix only if
