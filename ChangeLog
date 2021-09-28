@@ -10,6 +10,9 @@
 	* pam_tcb/support.h (pam_tcb_getlogin): New function.
 	Small static inline wrapper around getlogin(3).
 
+	* Make.defs: Add "-Wextra" to default CFLAGS.  Add an option to
+	enable "-Werror" also.
+
 2021-09-25  Björn Esser  <besser82 at fedoraproject.org>
 
 	* pam_tcb/support.c (_set_ctrl): Request automatic prefix only if
