@@ -30,7 +30,7 @@ nproc="$(nproc)" || nproc=1
 j="-j$nproc"
 
 CFLAGS='-O2 -Wall -W -DENABLE_SETFSUGID -DENABLE_NLS -DNLS_PACKAGE=\"Linux-PAM\"' \
-	make -k $j CC="$CC"
+	make -k $j CC="$CC" WERROR=1
 
 if git status --porcelain |grep ^.; then
 	echo >&2 'git status reported uncleanness'
