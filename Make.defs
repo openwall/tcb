@@ -2,11 +2,18 @@ CC = gcc
 INSTALL = install -p
 MKDIR = mkdir
 
+# Flag to enable -Werror on build.
+WERROR =
+
 DBGFLAG = #-ggdb
 ifndef CFLAGS
 CFLAGS = -O2
 endif
-CFLAGS += $(DBGFLAG) -I../include -Wall
+CFLAGS += $(DBGFLAG) -I../include
+CFLAGS += -Wall -Wextra
+ifneq ($(WERROR),)
+CFLAGS += -Werror
+endif
 #CFLAGS += -DFAIL_RECORD
 LDFLAGS += $(DBGFLAG) -L../libs
 
