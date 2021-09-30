@@ -23,7 +23,7 @@ SLIBDIR = /lib
 INCLUDEDIR = $(PREFIX)/include
 LIBDIR = $(PREFIX)/lib
 LIBEXECDIR = $(PREFIX)/libexec
-MANDIR = $(PREFIX)/man
+MANDIR = $(PREFIX)/share/man
 PKGCONFIGDIR = $(LIBDIR)/pkgconfig
 SYSUSERSDIR = $(PREFIX)/lib/sysusers.d
 

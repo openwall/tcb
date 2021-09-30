@@ -44,6 +44,8 @@
 	* tcb.spec: Add pkgconfig file.
 	* .gitignore: Add ignore rule for tcb.pc.
 
+	* Make.defs: Change MANDIR to "/usr/share/man".
+
 2021-09-25  Björn Esser  <besser82 at fedoraproject.org>
 
 	* pam_tcb/support.c (_set_ctrl): Request automatic prefix only if
