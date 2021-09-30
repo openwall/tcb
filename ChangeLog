@@ -29,6 +29,21 @@
 	* misc/tcb-auth.sysusers: New file.
 	* .gitignore: Add build output from "misc" directory.
 
+	misc: Add pkgconfig file.
+	pkgconfig files provide a useful mechanism for storing various
+	information about libraries and packages on a given system.
+	Information stored by .pc files include compiler and linker flags
+	necessary to use a given library, as well as any other relevant
+	metadata.
+	* Make.defs: Add new presets for PREFIX, INCLUDEDIR, and
+	PKGCONFIGDIR.  Also adapt the existing presets slightly.
+	* misc/Makefile: Build and install the pkgconfig file.
+	Also use INCLUDEDIR instead of hardcoding its path, and
+	adapt the clean target.
+	* misc/tcb.pc.in: New file.
+	* tcb.spec: Add pkgconfig file.
+	* .gitignore: Add ignore rule for tcb.pc.
+
 2021-09-25  Björn Esser  <besser82 at fedoraproject.org>
 
 	* pam_tcb/support.c (_set_ctrl): Request automatic prefix only if

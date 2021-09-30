@@ -87,6 +87,7 @@ rmdir /sbin/chkpwd.d
 %_includedir/tcb.h
 %_libdir/libtcb.a
 %_libdir/libtcb.so
+%_libdir/pkgconfig/tcb.pc
 
 %changelog
 * Mon Jan 11 2021 Solar Designer <solar-at-owl.openwall.com> 1.2-owl1

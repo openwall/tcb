@@ -17,11 +17,14 @@ endif
 #CFLAGS += -DFAIL_RECORD
 LDFLAGS += $(DBGFLAG) -L../libs
 
+PREFIX = /usr
 SBINDIR = /sbin
 SLIBDIR = /lib
-LIBDIR = /usr/lib
-LIBEXECDIR = /usr/libexec
-MANDIR = /usr/man
-SYSUSERSDIR = /usr/lib/sysusers.d
+INCLUDEDIR = $(PREFIX)/include
+LIBDIR = $(PREFIX)/lib
+LIBEXECDIR = $(PREFIX)/libexec
+MANDIR = $(PREFIX)/man
+PKGCONFIGDIR = $(LIBDIR)/pkgconfig
+SYSUSERSDIR = $(PREFIX)/lib/sysusers.d
 
 SHLIBMODE = 755
