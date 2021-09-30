@@ -1,0 +1,10 @@
+prefix=@PREFIX@
+exec_prefix=${prefix}
+libdir=@SLIBDIR@
+includedir=@INCLUDEDIR@
+
+Name: tcb
+Description: Library implementing the tcb password shadowing scheme
+Version: @VERSION@
+Libs: -L${libdir} -ltcb
+Cflags: -I${includedir}
