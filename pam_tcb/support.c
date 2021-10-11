@@ -475,8 +475,8 @@ static int unix_verify_password_plain(pam_handle_t *pamh,
 	if (!salt) {
 		/* we're not faking, we have an existing user, so... */
 		uid_t uid = getuid();
-		if (uid == geteuid() && uid == pw->pw_uid && uid != 0) {
-			/* We are not root perhaps this is the reason? */
+		if (uid == geteuid() && (uid == pw->pw_uid || uid == 0)) {
+			/* We are not privileged enough perhaps this is the reason? */
 			D(("running helper binary"));
 			retval = unix_run_helper_binary(user, pass);
 		} else {

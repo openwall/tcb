@@ -43,7 +43,8 @@ static int unix_verify_password(const char *user, const char *pass, int nullok)
 
 	stored_hash = NULL;
 	if (pw) {
-		if (getuid() != pw->pw_uid)
+		uid_t uid = getuid();
+		if (uid != pw->pw_uid && uid != 0)
 			return AUTH_FAILED;
 
 		if (!strcmp(pw->pw_passwd, "x")) {
