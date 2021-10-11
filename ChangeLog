@@ -99,6 +99,15 @@
 	* tcb.spec: Remove -DENABLE_SETFSUGID.
 	* ci/run-build-and-tests.sh: Likewise.
 
+2021-10-12  Björn Esser  <besser82 at fedoraproject.org>
+
+	pam_tcb: Allow for authentication if a system policy requires the
+	root user to acquire special capabilities.
+	* pam_tcb/support.c (unix_verify_password_plain): Allow the helper
+	binary to be run as root if e.g. SELinux prevents access to file
+	storing the hashed user password.
+	* progs/tcb_chkpwd.c (unix_verify_password): Likewise.
+
 2021-09-30  Björn Esser  <besser82 at fedoraproject.org>
 
 	pam_tcb: Fix "-Wpedantic".
