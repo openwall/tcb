@@ -116,6 +116,13 @@
 	Replace call to unix_run_helper_binary() with run_chkpwd_binary().
 	* progs/tcb_chkpwd.c: Refactor the helper program to also perform
 	verifications for the expiration of user accounts.
+	* pam_tcb/pam_unix_acct.c (pam_sm_acct_mgmt): Perform expiration
+	verification of a user account through an external helper binary
+	if the verification fails for insufficient credentials.
+	* pam_tcb/pam_unix_acct.c (run_chkpwd_binary): New static function
+	wrapper around unix_run_helper_binary().
+	* pam_tcb/Makefile: Add custom rule with "CHKPWD_HELPER" macro
+	definined to compile pam_unix_acct.o.
 
 2021-09-30  Björn Esser  <besser82 at fedoraproject.org>
 
