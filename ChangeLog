@@ -107,6 +107,13 @@
 	binary to be run as root if e.g. SELinux prevents access to file
 	storing the hashed user password.
 	* progs/tcb_chkpwd.c (unix_verify_password): Likewise.
+	* pam_tcb/support.c (unix_run_helper_binary): Refactor function to
+	be non-static and to allow for more versatile use.
+	* pam_tcb/support.h (unix_run_helper_binary): New function.
+	* pam_tcb/support.c (run_chkpwd_binary): New static function wrapper
+	around unix_run_helper_binary().
+	* pam_tcb/support.c (unix_verify_password_plain):
+	Replace call to unix_run_helper_binary() with run_chkpwd_binary().
 
 2021-09-30  Björn Esser  <besser82 at fedoraproject.org>
 
