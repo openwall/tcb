@@ -114,6 +114,8 @@
 	around unix_run_helper_binary().
 	* pam_tcb/support.c (unix_verify_password_plain):
 	Replace call to unix_run_helper_binary() with run_chkpwd_binary().
+	* progs/tcb_chkpwd.c: Refactor the helper program to also perform
+	verifications for the expiration of user accounts.
 
 2021-09-30  Björn Esser  <besser82 at fedoraproject.org>
 
