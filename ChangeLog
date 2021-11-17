@@ -13,6 +13,8 @@
 	* Make.defs: Add flag to disable attribute symver with GCC10+.
 	* libs/Makefile: Likewise.
 
+	* include/attribute.h: Fix indentation to match style.
+
 2021-09-30  Björn Esser  <besser82 at fedoraproject.org>
 
 	pam_tcb: Fix "-Wpedantic".
