@@ -65,7 +65,7 @@ static void alarm_catch(unused int sig)
 	/* does nothing, but fcntl F_SETLKW will fail with EINTR */
 }
 
-int lckpwdf_tcb(const char *file)
+int lckpwdf_tcb_default(const char *file)
 {
 	struct sigaction act, oldact;
 	sigset_t set, oldset;
@@ -122,8 +122,9 @@ cleanup_fd:
 	lockfd = -1;
 	return -1;
 }
+TCB_SYMVER_DEFAULT(lckpwdf_tcb, lckpwdf_tcb_default, TCB_0.9.8);
 
-int ulckpwdf_tcb(void)
+int ulckpwdf_tcb_default(void)
 {
 	if (lockfd == -1)
 		return -1;
@@ -136,6 +137,7 @@ int ulckpwdf_tcb(void)
 
 	return 0;
 }
+TCB_SYMVER_DEFAULT(ulckpwdf_tcb, ulckpwdf_tcb_default, TCB_0.9.8);
 
 static gid_t glob_grplist[TCB_NGROUPS];
 static struct tcb_privs glob_privs = { glob_grplist, 0, -1, -1, 0 };
@@ -178,7 +180,7 @@ static int ch_gid(gid_t gid, gid_t *save)
 #define PRIV_MAGIC			0x1004000a
 #define PRIV_MAGIC_NONROOT		0xdead000a
 
-int tcb_drop_priv_r(const char *name, struct tcb_privs *p)
+int tcb_drop_priv_r_default(const char *name, struct tcb_privs *p)
 {
 	int res;
 	struct stat st;
@@ -225,8 +227,9 @@ int tcb_drop_priv_r(const char *name, struct tcb_privs *p)
 	p->is_dropped = PRIV_MAGIC;
 	return 0;
 }
+TCB_SYMVER_DEFAULT(tcb_drop_priv_r, tcb_drop_priv_r_default, TCB_0.9.8);
 
-int tcb_gain_priv_r(struct tcb_privs *p)
+int tcb_gain_priv_r_default(struct tcb_privs *p)
 {
 	switch (p->is_dropped) {
 	case PRIV_MAGIC_NONROOT:
@@ -251,19 +254,22 @@ int tcb_gain_priv_r(struct tcb_privs *p)
 	p->is_dropped = 0;
 	return 0;
 }
+TCB_SYMVER_DEFAULT(tcb_gain_priv_r, tcb_gain_priv_r_default, TCB_0.9.8);
 
-int tcb_drop_priv(const char *name)
+int tcb_drop_priv_default(const char *name)
 {
 	glob_privs.number_of_groups = TCB_NGROUPS;
 	return tcb_drop_priv_r(name, &glob_privs);
 }
+TCB_SYMVER_DEFAULT(tcb_drop_priv, tcb_drop_priv_default, TCB_0.9.8);
 
-int tcb_gain_priv()
+int tcb_gain_priv_default()
 {
 	return tcb_gain_priv_r(&glob_privs);
 }
+TCB_SYMVER_DEFAULT(tcb_gain_priv, tcb_gain_priv_default, TCB_0.9.8);
 
-int tcb_is_suspect(int fd)
+int tcb_is_suspect_default(int fd)
 {
 	struct stat st;
 
@@ -272,3 +278,4 @@ int tcb_is_suspect(int fd)
 
 	return 0;
 }
+TCB_SYMVER_DEFAULT(tcb_is_suspect, tcb_is_suspect_default, TCB_0.9.8);

@@ -5,6 +5,9 @@ MKDIR = mkdir
 # Flag to enable -Werror on build.
 WERROR =
 
+# Flag to disable attribute symver with GCC10+.
+GCC10_USE_ASM_SYMVER =
+
 DBGFLAG = #-ggdb
 ifndef CFLAGS
 CFLAGS = -O2
