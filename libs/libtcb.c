@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/fsuid.h>
 
 #include "tcb.h"
 #include "attribute.h"
@@ -140,8 +141,6 @@ int ulckpwdf_tcb(void)
 static gid_t glob_grplist[TCB_NGROUPS];
 static struct tcb_privs glob_privs = { glob_grplist, 0, -1, -1, 0 };
 
-#ifdef ENABLE_SETFSUGID
-#include <sys/fsuid.h>
 /*
  * Two setfsuid() in a row - stupid, but how the hell am I supposed to check
  * whether setfsuid() succeeded?
@@ -160,20 +159,6 @@ static int ch_gid(gid_t gid, gid_t *save)
 		*save = tmp;
 	return (gid_t) setfsgid(gid) == gid;
 }
-#else
-static int ch_uid(uid_t uid, uid_t *save)
-{
-	if (save)
-		*save = geteuid();
-	return setreuid(-1, uid) != -1;
-}
-static int ch_gid(gid_t gid, gid_t *save)
-{
-	if (save)
-		*save = getegid();
-	return setregid(-1, gid) != -1;
-}
-#endif
 
 #define PRIV_MAGIC			0x1004000a
 #define PRIV_MAGIC_NONROOT		0xdead000a

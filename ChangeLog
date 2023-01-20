@@ -1,3 +1,10 @@
+2023-01-20  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	Make -DENABLE_SETFSUGID the default and only implementation.
+	* libs/libtcb.c [!ENABLE_SETFSUGID]: Remove.
+	* tcb.spec: Remove -DENABLE_SETFSUGID.
+	* ci/run-build-and-tests.sh: Likewise.
+
 2021-09-30  Björn Esser  <besser82 at fedoraproject.org>
 
 	pam_tcb: Fix "-Wpedantic".

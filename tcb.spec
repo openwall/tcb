@@ -38,7 +38,7 @@ building tcb-aware applications.
 %setup -q
 
 %build
-CFLAGS="%optflags -DENABLE_SETFSUGID" %__make
+CFLAGS="%optflags" %__make
 
 %install
 rm -rf %buildroot
