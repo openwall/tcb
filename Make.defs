@@ -5,6 +5,13 @@ MKDIR = mkdir
 # Flag to enable -Werror on build.
 WERROR =
 
+# Flag to disable attribute symver with GCC10+.
+GCC10_USE_ASM_SYMVER =
+
+# Option to configure the suffix appended to pam_tcb.so.
+# May be needed when compiling to use with OpenPAM.
+PAM_SO_SUFFIX =
+
 DBGFLAG = #-ggdb
 ifndef CFLAGS
 CFLAGS = -O2

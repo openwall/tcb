@@ -7,6 +7,10 @@ LIBTCB_A = libtcb.a
 LIB_MAP = libtcb.map
 NSS_MAP = libnss_tcb.map
 
+ifeq ($(GCC10_USE_ASM_SYMVER),)
+CFLAGS += -DWITH_GCC_ATTR_SYMVER
+endif
+
 all: $(LIBTCB_LONG) $(LIBNSS) $(LIBTCB_A)
 
 $(LIBTCB_A): libtcb_a.o

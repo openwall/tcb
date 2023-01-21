@@ -3,7 +3,7 @@
 
 #if defined(__GNUC__) && defined(__GNUC_MINOR__) && !defined(__STRICT_ANSI__)
 # define TCB_GNUC_PREREQ(maj, min) \
-        ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+	 ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
 #else
 # define TCB_GNUC_PREREQ(maj, min) 0
 #endif
@@ -25,5 +25,19 @@
 #else
 # define TCB_NONNULL(params)
 #endif
+
+#if TCB_GNUC_PREREQ(10,0) && defined(WITH_GCC_ATTR_SYMVER)
+# define TCB_SYMVER_SET(aliasname, name, version, mode) \
+	 extern __typeof (name) name \
+	   __attribute__((symver (#aliasname #mode #version)))
+#else
+# define TCB_SYMVER_SET(aliasname, name, version, mode) \
+	 __asm__ (".symver " #name "," #aliasname #mode #version)
+#endif
+
+#define TCB_SYMVER_COMPAT(aliasname, name, version) \
+	TCB_SYMVER_SET(aliasname, name, version, @)
+#define TCB_SYMVER_DEFAULT(aliasname, name, version) \
+	TCB_SYMVER_SET(aliasname, name, version, @@)
 
 #endif /* TCB_ATTRIBUTE_H_ */

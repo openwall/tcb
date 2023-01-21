@@ -1,6 +1,5 @@
 include ../Make.defs
 
-PAM_SO_SUFFIX =
 PAM_TCB = pam_tcb.so$(PAM_SO_SUFFIX)
 PAM_MAP = pam_tcb.map
 

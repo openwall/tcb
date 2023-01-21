@@ -1,3 +1,23 @@
+2021-11-17  Björn Esser  <besser82 at fedoraproject.org>
+
+	libtcb: Add versioning to exported symbols.
+	* include/attribute.h: Add TCB_SYMVER_* macros.
+	* libs/libtcb.c (lckpwdf_tcb): Add symbol versioning.
+	* libs/libtcb.c (tcb_drop_priv): Likewise.
+	* libs/libtcb.c (tcb_drop_priv_r): Likewise.
+	* libs/libtcb.c (tcb_gain_priv): Likewise.
+	* libs/libtcb.c (tcb_gain_priv_r): Likewise.
+	* libs/libtcb.c (tcb_is_suspect_default): Likewise.
+	* libs/libtcb.c (ulckpwdf_tcb): Likewise.
+	* libs/libtcb.map: Declare version for exported symbols.
+	* Make.defs: Add flag to disable attribute symver with GCC10+.
+	* libs/Makefile: Likewise.
+
+	* include/attribute.h: Fix indentation to match style.
+
+	* pam_tcb/Makefile: Move PAM_SO_SUFFIX to Make.defs.
+	* Make.defs: Likewise.
+
 2021-09-30  Björn Esser  <besser82 at fedoraproject.org>
 
 	pam_tcb: Fix "-Wpedantic".
