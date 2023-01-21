@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/fsuid.h>
+#include <sys/syscall.h>
 
 #include "tcb.h"
 #include "attribute.h"
@@ -160,6 +161,15 @@ static int ch_gid(gid_t gid, gid_t *save)
 	return (gid_t) setfsgid(gid) == gid;
 }
 
+static int sys_setgroups(size_t size, const gid_t *list)
+{
+#ifdef SYS_setgroups32
+	if (sizeof(*list) == 4)
+		return syscall(SYS_setgroups32, size, list);
+#endif
+	return syscall(SYS_setgroups, size, list);
+}
+
 #define PRIV_MAGIC			0x1004000a
 #define PRIV_MAGIC_NONROOT		0xdead000a
 
@@ -200,7 +210,7 @@ int tcb_drop_priv_r(const char *name, struct tcb_privs *p)
 
 	p->number_of_groups = res;
 
-	if (setgroups(0, NULL) == -1)
+	if (sys_setgroups(0, NULL) == -1)
 		return -1;
 	if (!ch_gid(shadow_gid, &p->old_gid))
 		return -1;
@@ -230,7 +240,7 @@ int tcb_gain_priv_r(struct tcb_privs *p)
 		return -1;
 	if (!ch_gid(p->old_gid, NULL))
 		return -1;
-	if (setgroups(p->number_of_groups, p->grplist) == -1)
+	if (sys_setgroups(p->number_of_groups, p->grplist) == -1)
 		return -1;
 
 	p->is_dropped = 0;

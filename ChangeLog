@@ -1,3 +1,10 @@
+2023-01-21  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	Use setgroups syscall instead of the libc function.
+	* libs/libtcb.c (sys_setgroups): New function, a thin wrapper around
+	setgroups syscall.
+	(tcb_drop_priv_r, tcb_gain_priv_r): Use it instead of setgroups.
+
 2023-01-20  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	Make -DENABLE_SETFSUGID the default and only implementation.
