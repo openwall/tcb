@@ -147,10 +147,19 @@ struct unix_verify_password_param {
 	const char *pass;
 };
 
+#define pam_tcb_overwrite_string(xx)					\
+{									\
+	void *xx__ = xx;						\
+	if (xx__) {							\
+		xx__ = memset(xx__, '\0', strlen(xx__));		\
+		__asm__ __volatile__ ("" : : "r"(xx__) : "memory");	\
+	}								\
+}
+
 /* use this to free strings, ESPECIALLY password strings */
 #define _pam_delete(xx) \
 { \
-	_pam_overwrite(xx); \
+	pam_tcb_overwrite_string(xx); \
 	_pam_drop(xx); \
 }
 
