@@ -108,13 +108,9 @@ pam_prompt(pam_handle_t *pamh, int style, char **response, const char *fmt, ...)
 	if (response)
 		*response = pam_resp == NULL ? NULL : pam_resp->resp;
 	else if (pam_resp && pam_resp->resp)
-	{
-		_pam_overwrite(pam_resp->resp);
-		_pam_drop(pam_resp->resp);
-	}
-	_pam_overwrite(msgbuf);
+		_pam_delete(pam_resp->resp);
+	_pam_delete(msgbuf);
 	_pam_drop(pam_resp);
-	free(msgbuf);
 	if (retval != PAM_SUCCESS)
 		pam_syslog(pamh, LOG_ERR, "Conversation failure: %s",
 			   pam_strerror(pamh, retval));

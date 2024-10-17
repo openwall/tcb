@@ -1,3 +1,9 @@
+2024-10-17  Dmitry V. Levin  <ldv at owl.openwall.com>
+
+	pam_tcb: Use _pam_delete in the compat implementation of pam_prompt.
+	* pam_tcb/compat.c (pam_prompt): Use _pam_delete instead of
+	_pam_overwrite followed by _pam_drop.
+
 2023-01-21  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	Use setgroups syscall instead of the libc function.
