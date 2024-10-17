@@ -547,11 +547,11 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 		retval = unix_approve_pass(pamh, oldpass, newpass);
 	}
 
-	_pam_overwrite((char *)oldpass);
+	pam_tcb_overwrite_string((char *)oldpass);
 
 	if (retval != PAM_SUCCESS) {
 		pam_syslog(pamh, LOG_NOTICE, "New password not acceptable");
-		_pam_overwrite((char *)newpass);
+		pam_tcb_overwrite_string((char *)newpass);
 		return retval;
 	}
 
@@ -562,7 +562,7 @@ PAM_EXTERN int pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 
 	/* First we hash the new password and forget the plaintext. */
 	newhash = do_crypt(pamh, newpass);
-	_pam_overwrite((char *)newpass);
+	pam_tcb_overwrite_string((char *)newpass);
 
 	D(("password processed"));
 
