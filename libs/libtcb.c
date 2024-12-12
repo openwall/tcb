@@ -139,9 +139,6 @@ int ulckpwdf_tcb(void)
 	return 0;
 }
 
-static gid_t glob_grplist[TCB_NGROUPS];
-static struct tcb_privs glob_privs = { glob_grplist, 0, -1, -1, 0 };
-
 /*
  * Two setfsuid() in a row - stupid, but how the hell am I supposed to check
  * whether setfsuid() succeeded?
@@ -247,15 +244,25 @@ int tcb_gain_priv_r(struct tcb_privs *p)
 	return 0;
 }
 
+static struct tcb_privs *get_thread_local_privs(void)
+{
+	static __thread gid_t grplist[TCB_NGROUPS];
+	static __thread struct tcb_privs privs = { NULL, 0, -1, -1, 0 };
+	/* no need to conditionalize here */
+	privs.grplist = grplist;
+	return &privs;
+}
+
 int tcb_drop_priv(const char *name)
 {
-	glob_privs.number_of_groups = TCB_NGROUPS;
-	return tcb_drop_priv_r(name, &glob_privs);
+	struct tcb_privs *privs = get_thread_local_privs();
+	privs->number_of_groups = TCB_NGROUPS;
+	return tcb_drop_priv_r(name, privs);
 }
 
 int tcb_gain_priv()
 {
-	return tcb_gain_priv_r(&glob_privs);
+	return tcb_gain_priv_r(get_thread_local_privs());
 }
 
 int tcb_is_suspect(int fd)
