@@ -11,7 +11,11 @@
 
 #include "tcb.h"
 
-static __thread DIR *tcbdir = NULL;
+static DIR **get_thread_local_tcbdir(void)
+{
+	static __thread DIR *tcbdir = NULL;
+	return &tcbdir;
+}
 
 int _nss_tcb_setspent(void)
 {
@@ -20,9 +24,11 @@ int _nss_tcb_setspent(void)
 
 int _nss_tcb_endspent(void)
 {
-	if (tcbdir) {
-		closedir(tcbdir);
-		tcbdir = NULL;
+	DIR **tcbdir = get_thread_local_tcbdir();
+
+	if (*tcbdir) {
+		closedir(*tcbdir);
+		*tcbdir = NULL;
 	}
 	return 1;
 }
@@ -96,31 +102,32 @@ int _nss_tcb_getspnam_r(const char *name, struct spwd *__result_buf,
 int _nss_tcb_getspent_r(struct spwd *__result_buf,
     char *__buffer, size_t __buflen, struct spwd **__result)
 {
+	DIR **tcbdir = get_thread_local_tcbdir();
 	struct dirent *result;
 	off_t currpos;
 	int retval, saved_errno;
 
-	if (!tcbdir) {
-		tcbdir = opendir(TCB_DIR);
-		if (!tcbdir)
+	if (!*tcbdir) {
+		*tcbdir = opendir(TCB_DIR);
+		if (!*tcbdir)
 			return NSS_STATUS_UNAVAIL;
 	}
 
 	do {
-		currpos = telldir(tcbdir);
+		currpos = telldir(*tcbdir);
 		saved_errno = errno;
 		errno = 0;
-		result = readdir(tcbdir);
+		result = readdir(*tcbdir);
 		if (!result && errno) {
-			closedir(tcbdir);
+			closedir(*tcbdir);
 			errno = saved_errno;
-			tcbdir = NULL;
+			*tcbdir = NULL;
 			return NSS_STATUS_UNAVAIL;
 		}
 		if (!result) {
-			closedir(tcbdir);
+			closedir(*tcbdir);
 			errno = ENOENT;
-			tcbdir = NULL;
+			*tcbdir = NULL;
 			return NSS_STATUS_NOTFOUND;
 		}
 		errno = saved_errno;
@@ -136,15 +143,15 @@ int _nss_tcb_getspent_r(struct spwd *__result_buf,
 
 	case NSS_STATUS_TRYAGAIN:
 		saved_errno = errno;
-		seekdir(tcbdir, currpos);
+		seekdir(*tcbdir, currpos);
 		errno = saved_errno;
 		return NSS_STATUS_TRYAGAIN;
 
 	default:
 		saved_errno = errno;
-		closedir(tcbdir);
+		closedir(*tcbdir);
 		errno = saved_errno;
-		tcbdir = NULL;
+		*tcbdir = NULL;
 		return retval;
 	}
 }

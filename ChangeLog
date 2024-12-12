@@ -1,5 +1,18 @@
 2021-12-18  Björn Esser  <besser82 at fedoraproject.org>
 
+	libnss_tcb: Allow for local-dynamic TLS-model optimizations.
+	Since we dropped the conditionalized use of readdir_r(3) in commit
+	557818cec58c57b8b8efc02087073f89a0bb183e, the dirstream object for
+	use with readdir(3) can now get adapted easily in a way the compiler
+	(and/or the linker) is able to apply global-dynamic to local-dynamic
+	optimizations for the used thread-local storage model.
+	* libs/nss.c (get_thread_local_tcbdir): New function, a thin
+        wrapper to return a double-pointer to the thread-local dirstream
+	named tcbdir for use by readir(3).
+	(_nss_tcb_endspent): Adapt to use the double-pointer to the
+	thread-local dirstream provided by get_thread_local_tcbdir().
+	(_nss_tcb_getspnam_r): Likewise.
+
 	libtcb: Add versioning to exported symbols.
 	This change is implemented for adding some interfaces to libtcb to
 	give it a more consumer friendly API and thus makes porting existing
