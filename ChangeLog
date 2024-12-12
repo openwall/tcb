@@ -1,3 +1,13 @@
+2024-12-12  Björn Esser  <besser82 at fedoraproject.org>
+
+	Makefile: Pass CFLAGS to the compiler when invoking the linker.
+	Some CFLAGS imply effects on the linker too (e.g., -fsanitize=),
+	so they must get passed within the linker rule as well.
+	* libs/Makefile: Pass CFLAGS to the compiler when linking.
+	* pam_tcb/Makefile: Likewise.
+	* progs/Makefile: Likewise.
+	* LICENSE: Update copyright for this contribution.
+
 2024-10-17  Dmitry V. Levin  <ldv at owl.openwall.com>
 
 	pam_tcb: Do not use deprecated _pam_overwrite macro.

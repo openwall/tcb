@@ -7,13 +7,13 @@ CHKPWD = tcb_chkpwd
 all: $(CONVERT) $(UNCONVERT) $(CHKPWD)
 
 $(CONVERT): $(CONVERT).o
-	$(CC) $(LDFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<
 
 $(UNCONVERT): $(UNCONVERT).o
-	$(CC) $(LDFLAGS) -o $@ $< -ltcb
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< -ltcb
 
 $(CHKPWD): $(CHKPWD).o
-	$(CC) $(LDFLAGS) -o $@ $< -lcrypt
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< -lcrypt
 
 .c.o:
 	$(CC) $(CFLAGS) -c $< -o $@
