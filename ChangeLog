@@ -11,6 +11,21 @@
 
 2024-12-12  Björn Esser  <besser82 at fedoraproject.org>
 
+	libtcb: Use thread-local storage for tcb_drop_priv and tcb_gain_priv.
+	tcb_drop_priv and tcb_gain_priv now use per-thread storage areas
+	for their operations, allocated upon the first call in each thread
+	that uses them.  This makes it safe to call these functions from
+	multiple threads simultaneously.
+	The introduction of this feature is a safety net against sloppy
+	coding.  Programs are still strongly encouraged to use the reentrant
+	functions tcb_drop_priv_r and tcb_gain_priv_r instead.
+	* libs/libtcb.c (get_thread_local_privs): New function, a thin
+	wrapper to return the pointer to the thread-local storage area of
+	the former file-global struct tcb_privs glob_privs.
+	(tcb_drop_priv): Use the pointer to the thread-local struct tcb_privs
+	provided by get_thread_local_privs().
+	(tcb_gain_priv): Likewise.
+
 	Makefile: Pass CFLAGS to the compiler when invoking the linker.
 	Some CFLAGS imply effects on the linker too (e.g., -fsanitize=),
 	so they must get passed within the linker rule as well.
