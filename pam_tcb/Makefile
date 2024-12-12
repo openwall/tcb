@@ -17,7 +17,7 @@ LIBOBJ = $(LIBSRC:.c=.o)
 all: $(PAM_TCB)
 
 $(PAM_TCB): $(LIBOBJ) $(PAM_MAP)
-	$(CC) $(LDFLAGS) -shared -o $@ $(PAM_TCB_SONAME) \
+	$(CC) $(CFLAGS) $(LDFLAGS) -shared -o $@ $(PAM_TCB_SONAME) \
 		-Wl,--version-script=$(PAM_MAP) $(LIBOBJ) -lcrypt -lpam -ltcb
 
 .c.o:

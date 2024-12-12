@@ -17,13 +17,13 @@ libtcb_a.o: libtcb.c
 	$(CC) $(CFLAGS) $(DBGFLAG) -c $< -o $@
 
 $(LIBTCB_LONG): libtcb.o $(LIB_MAP)
-	$(CC) $(LDFLAGS) -shared -o $@ -Wl,-soname,$(LIBTCB) \
+	$(CC) $(CFLAGS) $(LDFLAGS) -shared -o $@ -Wl,-soname,$(LIBTCB) \
 		-Wl,--version-script=$(LIB_MAP) $<
 	ln -sf $@ $(LIBTCB)
 	ln -sf $(LIBTCB) libtcb.so
 
 $(LIBNSS): nss.o $(NSS_MAP) $(LIBTCB_LONG)
-	$(CC) $(LDFLAGS) -shared -o $@ -Wl,-soname,$(LIBNSS) \
+	$(CC) $(CFLAGS) $(LDFLAGS) -shared -o $@ -Wl,-soname,$(LIBNSS) \
 		-Wl,--version-script=$(NSS_MAP) $< -ltcb
 
 .c.o:
