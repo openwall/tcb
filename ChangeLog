@@ -1,4 +1,17 @@
-2021-12-18  Björn Esser  <besser82 at fedoraproject.org>
+2024-12-18  Björn Esser  <besser82 at fedoraproject.org>
+
+	libnss_tcb: Initialize or rewind dirstream from inside setspent(3).
+	On first call to setspent(3) initialize the directory stream properly;
+	on subsequent calls use rewinddir(3) to reset the position of the
+	directory stream to the beginning of the directory, and also update
+	the existing directory stream to refer to the current state of the
+	underlying directory it operates on.  As all internal functions are
+	operating on thread-local storage now, this operation will be safe,
+	since it will emit no effects outside of the thread calling the
+	setspent(3) function itself.
+	* libs/nss.c (_nss_tcb_setspent): Initialize or rewind dirstream.
+	(_nss_tcb_getspent_r): Move initialization of the dirstream to
+	_nss_tcb_setspent.
 
 	libtcb: Add versioning to exported symbols.
 	This change is implemented for adding some interfaces to libtcb to
