@@ -5,6 +5,10 @@ MKDIR = mkdir
 # Flag to enable -Werror on build.
 WERROR =
 
+# Option to configure the suffix appended to pam_tcb.so.
+# May be needed when compiling to use with OpenPAM.
+PAM_SO_SUFFIX =
+
 DBGFLAG = #-ggdb
 ifndef CFLAGS
 CFLAGS = -O2

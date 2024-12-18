@@ -1,3 +1,8 @@
+2021-12-18  Björn Esser  <besser82 at fedoraproject.org>
+
+	* pam_tcb/Makefile: Move PAM_SO_SUFFIX to Make.defs.
+	* Make.defs: Likewise.
+
 2024-12-12  Björn Esser  <besser82 at fedoraproject.org>
 
 	Makefile: Pass CFLAGS to the compiler when invoking the linker.
