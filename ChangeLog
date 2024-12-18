@@ -1,5 +1,11 @@
 2021-12-18  Björn Esser  <besser82 at fedoraproject.org>
 
+	libtcb: Add versioning to exported symbols.
+	This change is implemented for adding some interfaces to libtcb to
+	give it a more consumer friendly API and thus makes porting existing
+	applications to be TCB aware easier.
+	* libs/libtcb.map: Declare version for exported symbols.
+
 	* pam_tcb/Makefile: Move PAM_SO_SUFFIX to Make.defs.
 	* Make.defs: Likewise.
 
