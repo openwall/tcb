@@ -1,6 +1,6 @@
 # $Owl$
 
-{
+TCB_0.9.8 {
   global:
     lckpwdf_tcb;
     ulckpwdf_tcb;
