@@ -1,3 +1,14 @@
+2024-12-20  Björn Esser  <besser82 at fedoraproject.org>
+
+	libnss_tcb: Disallow potentially-malicious user names in getspnam(3).
+	IEEE Std 1003.1-2001 allows only the following characters to appear
+	in group- and usernames: letters, digits, underscores, periods,
+	<at>-signs (@), and dashes.  The name may not start with a dash or
+	an "@" sign.  The "$" sign is allowed at the end of usernames to
+	allow typical Samba machine accounts.
+	* libs/nss.c (_nss_tcb_getspnam_r): Check for potentially-malicious
+	user names, and bail out in case.
+
 2024-12-18  Björn Esser  <besser82 at fedoraproject.org>
 
 	libnss_tcb: Initialize or rewind dirstream from inside setspent(3).

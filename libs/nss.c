@@ -36,6 +36,31 @@ int _nss_tcb_endspent(void)
 	return 1;
 }
 
+/******************************************************************************
+IEEE Std 1003.1-2001 allows only the following characters to appear in group-
+and usernames: letters, digits, underscores, periods, <at>-signs (@), and
+dashes.  The name may not start with a dash or an "@" sign.  The "$" sign
+is allowed at the end of usernames to allow typical Samba machine accounts.
+******************************************************************************/
+static int
+is_valid_username (const char *un)
+{
+	if (!un || !*un || un[0] == '-' || un[0] == '@' ||
+	    /* curdir || parentdir */
+	    !strcmp(un, ".") || !strcmp(un, ".."))
+		return 0;
+
+	do {
+		char c = *un++;
+		if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+		    (c >= '0' && c <= '9') || c == '-' || c == '.' ||
+		    c == '@' || c == '_' || (!*un && c == '$')))
+			return 0;
+	} while (*un);
+
+	return 1;
+}
+
 static FILE *tcb_safe_open(const char *file, const char *name)
 {
 	gid_t grplist[TCB_NGROUPS];
@@ -73,12 +98,18 @@ int _nss_tcb_getspnam_r(const char *name, struct spwd *__result_buf,
 	char *file;
 	int retval, saved_errno;
 
+	/* Disallow potentially-malicious user names */
+	if (!is_valid_username(name)) {
+		errno = ENOENT;
+		return NSS_STATUS_NOTFOUND;
+	}
+
 	if (asprintf(&file, TCB_FMT, name) < 0)
 		return NSS_STATUS_TRYAGAIN;
 	f = tcb_safe_open(file, name);
 	free(file);
 	if (!f)
-		return NSS_STATUS_UNAVAIL;
+		return errno == ENOENT ? NSS_STATUS_NOTFOUND : NSS_STATUS_UNAVAIL;
 
 	retval = fgetspent_r(f, __result_buf, __buffer, __buflen, __result);
 	saved_errno = errno;
