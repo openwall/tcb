@@ -8,6 +8,17 @@
 	proceeding.
 	* progs/tcb_unconvert.c (main): Likewise.
 
+	Makefile: Apply minimum hardening to libs and applications.
+	This enables stack-protector-strong with _FORTIFY_SOURCE=2, and the
+	following linker flags:
+	-Wl,-z,defs: Disallows undefined symbols at link-time.
+	-Wl,-z,relro: Relocation Read-Only protects the Global Offset Table
+		      (GOT) in ELF binaries from being overwritten.
+	-Wl,-z,now: Tell the dynamic linker to resolve all symbols when the
+		    program is started, or when the shared library is loaded.
+	* Make.defs: Define HARDENING_(C|LD)FLAGS, and prepend to coresponding
+	CFLAGS or LDFLAGS variable.
+
 2024-12-20  Björn Esser  <besser82 at fedoraproject.org>
 
 	libnss_tcb: Disallow potentially-malicious user names in getspnam(3).

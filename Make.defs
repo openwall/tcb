@@ -13,6 +13,10 @@ OMIT_PAM_MODULE =
 # May be needed when compiling to use with OpenPAM.
 PAM_SO_SUFFIX =
 
+# Flags for hardening.
+HARDENING_CFLAGS  = -fstack-protector-strong -D_FORTIFY_SOURCE=2
+HARDENING_LDFLAGS = -Wl,-z,defs -Wl,-z,relro -Wl,-z,now
+
 DBGFLAG = #-ggdb
 ifndef CFLAGS
 CFLAGS = -O2
@@ -23,7 +27,8 @@ ifneq ($(WERROR),)
 CFLAGS += -Werror
 endif
 #CFLAGS += -DFAIL_RECORD
-LDFLAGS += $(DBGFLAG) -L../libs
+CFLAGS  := $(HARDENING_CFLAGS) $(CFLAGS)
+LDFLAGS := $(HARDENING_LDFLAGS) $(LDFLAGS) $(DBGFLAG) -L../libs
 
 PREFIX = /usr
 SBINDIR = /sbin
