@@ -265,6 +265,11 @@ int main(void)
 {
 	int status;
 
+	if (getuid() || geteuid()) {
+		fprintf(stderr, "Only root can do this!\n");
+		return 1;
+	}
+
 	if (lckpwdf()) {
 		perror("lckpwdf");
 		return 1;

@@ -222,6 +222,11 @@ int main(void)
 	gid_t sysgid;
 	int status;
 
+	if (getuid() || geteuid()) {
+		fprintf(stderr, "Only root can do this!\n");
+		return 1;
+	}
+
 	gr = getgrnam("sys");
 	if (!gr) {
 		fprintf(stderr, "\"sys\" group not found.\n");
