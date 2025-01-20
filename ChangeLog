@@ -21,6 +21,24 @@
 
 2024-12-20  Björn Esser  <besser82 at fedoraproject.org>
 
+	libnss_tcb: Match interfaces with NSS documentation.
+	According to [1] the interfaces provided are of return-type
+	'enum nss_status', of which the _nss_database_getXXX_r() interfaces
+	are mandated to take four parameters: a pointer to the result,
+	a pointer to an additional buffer, the size of the buffer supplied,
+	and a pointer to an integer to report error values (errnop).  The
+	returned status values are meant to be accompanied by a corresponding
+	error value [2] passed through the errnop pointer.
+	[1] https://www.gnu.org/software/libc/manual/html_node/NSS-Module-Function-Internals.html
+	[2] https://www.gnu.org/software/libc/manual/html_node/NSS-Modules-Interface.html
+	* libs/nss.c (_nss_tcb_setspent): Adapt return-type and use return
+	values from documented macro.
+	(_nss_tcb_endspent): Likewise.
+	(_nss_tcb_getspnam_r): Adapt return-type, change fourth parameter
+	to be 'int *errnop', use return values from documented macros, and
+	set proper errno in errnop before returning.
+	(_nss_tcb_getspent_r): Likewise.
+
 	libnss_tcb: Disallow potentially-malicious user names in getspnam(3).
 	IEEE Std 1003.1-2001 allows only the following characters to appear
 	in group- and usernames: letters, digits, underscores, periods,
