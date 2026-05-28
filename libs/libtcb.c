@@ -167,6 +167,33 @@ static int sys_setgroups(size_t size, const gid_t *list)
 	return syscall(SYS_setgroups, size, list);
 }
 
+/*
+ * In an unprivileged user namespace the linux kernel writes "deny" to
+ * /proc/self/setgroups, after which setgroups(2) is permanently
+ * denied for this process.  Used to disambiguate an EPERM from
+ * setgroups(0, NULL): if this returns 0, the failure is the
+ * kernel's permanent denial rather than a real error.
+ */
+static int setgroups_allowed(void)
+{
+#ifdef __linux__
+	int fd;
+	char buf[5];
+	ssize_t n;
+
+	fd = open("/proc/self/setgroups", O_RDONLY | O_NOCTTY);
+	if (fd == -1)
+		return 1;
+	n = read(fd, buf, 5);
+	close(fd);
+	if (n != 5)
+		return 1;
+	return memcmp(buf, "deny\n", 5) != 0;
+#else
+	return 1;
+#endif
+}
+
 #define PRIV_MAGIC			0x1004000a
 #define PRIV_MAGIC_NONROOT		0xdead000a
 
