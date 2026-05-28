@@ -196,10 +196,12 @@ static int setgroups_allowed(void)
 
 #define PRIV_MAGIC			0x1004000a
 #define PRIV_MAGIC_NONROOT		0xdead000a
+#define PRIV_MAGIC_NOSETGROUPS		0xbeef000a
 
 int tcb_drop_priv_r(const char *name, struct tcb_privs *p)
 {
 	int res;
+	unsigned int magic = PRIV_MAGIC;
 	struct stat st;
 	gid_t shadow_gid = -1;
 	char *dir;
@@ -234,14 +236,30 @@ int tcb_drop_priv_r(const char *name, struct tcb_privs *p)
 
 	p->number_of_groups = res;
 
-	if (sys_setgroups(0, NULL) == -1)
-		return -1;
+	/*
+	 * Try to clear the supplementary group list.  In a user namespace
+	 * where /proc/self/setgroups is "deny", setgroups(2) is permanently
+	 * denied and the call returns EPERM.  In that case the kernel
+	 * guarantees the caller did not gain any group via the namespace
+	 * mechanism, so it is safe to leave the list in place; we record
+	 * this via PRIV_MAGIC_NOSETGROUPS so tcb_gain_priv_r() skips the
+	 * matching setgroups() call.
+	 */
+	if (sys_setgroups(0, NULL) == -1) {
+		int saved_errno = errno;
+		if (errno != EPERM || setgroups_allowed()) {
+			errno = saved_errno;
+			return -1;
+		}
+		magic = PRIV_MAGIC_NOSETGROUPS;
+	}
+
 	if (!ch_gid(shadow_gid, &p->old_gid))
 		return -1;
 	if (!ch_uid(st.st_uid, &p->old_uid))
 		return -1;
 
-	p->is_dropped = PRIV_MAGIC;
+	p->is_dropped = magic;
 	return 0;
 }
 
@@ -253,6 +271,7 @@ int tcb_gain_priv_r(struct tcb_privs *p)
 		return 0;
 
 	case PRIV_MAGIC:
+	case PRIV_MAGIC_NOSETGROUPS:
 		break;
 
 	default:
@@ -264,7 +283,8 @@ int tcb_gain_priv_r(struct tcb_privs *p)
 		return -1;
 	if (!ch_gid(p->old_gid, NULL))
 		return -1;
-	if (sys_setgroups(p->number_of_groups, p->grplist) == -1)
+	if (p->is_dropped != PRIV_MAGIC_NOSETGROUPS &&
+	    sys_setgroups(p->number_of_groups, p->grplist) == -1)
 		return -1;
 
 	p->is_dropped = 0;
