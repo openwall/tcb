@@ -14,7 +14,7 @@ struct tcb_privs {
 	int number_of_groups;
 	gid_t old_gid;
 	uid_t old_uid;
-	int is_dropped;
+	unsigned int is_dropped;
 };
 
 extern int lckpwdf_tcb(const char *);
