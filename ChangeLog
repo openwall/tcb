@@ -1,5 +1,23 @@
 2026-05-28  Egor Ignatov  <egori at altlinux.org>
 
+	libtcb: tolerate setgroups EPERM in unprivileged user namespaces.
+	In a user namespace where /proc/self/setgroups is "deny",
+	setgroups(2) is permanently rejected by the kernel.  Perform the
+	regular privilege drop and only tolerate sys_setgroups(0, NULL)
+	failing with EPERM in such a namespace; in that case the kernel
+	guarantees no supplementary group could have been gained via the
+	namespace, so leaving the list in place is safe.  Record this
+	with a new PRIV_MAGIC_NOSETGROUPS state so that tcb_gain_priv_r()
+	skips the matching setgroups() call.
+	Fixes failures of pam_tcb, libnss_tcb, tcb_unconvert and shadow's
+	shadowtcb_drop_priv() when running under rootless container.
+	* libs/libtcb.c (PRIV_MAGIC_NOSETGROUPS): New magic value.
+	(tcb_drop_priv_r): Tolerate EPERM from sys_setgroups(0, NULL)
+	when setgroups_allowed() returns 0 and record this by setting
+	p->is_dropped to PRIV_MAGIC_NOSETGROUPS.
+	(tcb_gain_priv_r): Accept PRIV_MAGIC_NOSETGROUPS and skip
+	sys_setgroups() in that state.
+
 	libtcb: add setgroups_allowed() helper.
 	Detect /proc/self/setgroups == "deny" to recognize an unprivileged
 	user namespace where setgroups(2) is permanently denied by the
