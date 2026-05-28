@@ -1,5 +1,12 @@
 2026-05-28  Egor Ignatov  <egori at altlinux.org>
 
+	libtcb: add setgroups_allowed() helper.
+	Detect /proc/self/setgroups == "deny" to recognize an unprivileged
+	user namespace where setgroups(2) is permanently denied by the
+	kernel.  No-op on non-Linux.
+	* libs/libtcb.c (setgroups_allowed) [__linux__]: New function.
+	(setgroups_allowed) [!__linux__]: New stub returning 1.
+
 	libtcb: change the type of is_dropped to unsigned int.
 	The PRIV_MAGIC_* values used to mark the privilege state do not
 	fit into a signed int, so store them in an unsigned field to avoid
