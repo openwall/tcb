@@ -22,6 +22,10 @@ $(PAM_TCB): $(LIBOBJ) $(PAM_MAP)
 .c.o:
 	$(CC) $(CFLAGS) -fPIC -c $< -o $@
 
+pam_unix_acct.o: pam_unix_acct.c
+	$(CC) $(CFLAGS) -DCHKPWD_HELPER=\"$(LIBEXECDIR)/chkpwd/tcb_chkpwd\" \
+		-fPIC -c $< -o $@
+
 support.o: support.c
 	$(CC) $(CFLAGS) -DCHKPWD_HELPER=\"$(LIBEXECDIR)/chkpwd/tcb_chkpwd\" \
 		-fPIC -c $< -o $@
