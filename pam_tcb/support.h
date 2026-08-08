@@ -184,6 +184,10 @@ extern int _set_ctrl(pam_handle_t *, int flags, int argc, const char **argv);
 extern int _unix_blankpasswd(pam_handle_t *, const char *user);
 extern int _unix_verify_password(pam_handle_t *, const char *, const char *);
 extern int unix_getspnam(struct spwd **, const struct passwd *);
+extern int unix_run_helper_binary(const char *user, const char *pass,
+				  const char *helper_binary, char *const argv[],
+				  const char helper_command[8],
+				  void *retval_helper, size_t retval_size);
 extern char *crypt_wrapper(pam_handle_t *, const char *, const char *);
 extern char *do_crypt(pam_handle_t *, const char *);
 

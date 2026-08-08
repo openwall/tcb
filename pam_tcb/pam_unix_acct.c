@@ -77,6 +77,29 @@ static int acct_shadow(unused pam_handle_t *pamh, const void *void_user)
 }
 
 /*
+ * Use an external helper binary to perform account management.
+ */
+static int run_chkpwd_binary(const char *user)
+{
+	char *argv[] = { CHKPWD_HELPER, "chkacct", NULL };
+	char config[8] = "shadow\0\0";
+	int retval_helper;
+
+	if (!pam_unix_param.helper)
+		goto end;
+
+	if (unix_run_helper_binary (user, "NULL", pam_unix_param.helper,
+				    argv, config, (void *)&retval_helper,
+				    sizeof(retval_helper)))
+		goto end;
+
+	return retval_helper;
+
+end:
+	return ACCT_0;
+}
+
+/*
  * The account management entry point.
  */
 PAM_EXTERN int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags,
@@ -112,6 +135,14 @@ PAM_EXTERN int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags,
 		retval = acct_shadow(pamh, user);
 	else
 		retval = _unix_fork(pamh, acct_shadow, user);
+	if (retval == ACCT_2) {
+		uid_t uid = getuid();
+		if (uid == geteuid() && (uid == pw->pw_uid || uid == 0)) {
+			/* We are not privileged enough perhaps this is the reason? */
+			D(("running helper binary"));
+			retval = run_chkpwd_binary(user);
+		}
+	}
 	if (retval > 255) {
 		daysleft = retval / 256;
 		retval %= 256;
