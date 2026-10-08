@@ -7,7 +7,7 @@
 
 j=-j`nproc` || j=
 type sudo >/dev/null 2>&1 && sudo=sudo || sudo=
-common_packages='libpam0g-dev make'
+common_packages='libcrypt-dev libpam0g-dev make'
 
 retry_if_failed()
 {
