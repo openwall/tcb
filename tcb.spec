@@ -2,7 +2,7 @@
 
 Summary: Libraries and tools implementing the tcb password shadowing scheme.
 Name: tcb
-Version: 1.2
+Version: 1.3
 Release: owl1
 License: BSD or GPL
 Group: System Environment/Base
@@ -90,6 +90,18 @@ rmdir /sbin/chkpwd.d
 %_libdir/pkgconfig/tcb.pc
 
 %changelog
+* Tue Oct 13 2026 Dmitry V. Levin <ldv-at-owl.openwall.com> 1.3-owl1
+- 1.3 release with changes described in ChangeLog, notably:
++ libtcb: make the setfsuid/setfsgid privilege handling the only
+  implementation, use the setgroups syscall and tolerate its permanent
+  denial in unprivileged user namespaces.
++ libtcb: use thread-local privilege state and version exported symbols.
++ libnss_tcb: validate usernames, use thread-local directory streams,
+  and reset shadow entry enumeration in setspent().
++ tcb_convert and tcb_unconvert: require both UID and EUID to be root.
++ Apply build hardening, add pkg-config metadata and optional
+  systemd-sysusers presets.
+
 * Mon Jan 11 2021 Solar Designer <solar-at-owl.openwall.com> 1.2-owl1
 - 1.2 release with Dmitry's post-1.1.9.1 cleanups implemented in mid-2020 and
 described in ChangeLog, most notably:
