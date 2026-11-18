@@ -279,29 +279,29 @@ int _unix_blankpasswd(pam_handle_t *pamh, const char *user)
 }
 
 /*
- * Verify the password of a user.
+ * Run a helper binary.
  */
-
-static int unix_run_helper_binary(const char *user, const char *pass)
+int unix_run_helper_binary(const char *user, const char *pass,
+			   const char *helper_binary, char *const argv[],
+			   const char config[8], void *retval_helper,
+			   size_t retval_size)
 {
-	int retval = PAM_AUTH_ERR, child, fail = 0, status, fds[2], retpipe[2];
+	int child, retval = 0, status, fds[2], retpipe[2];
 	sighandler_t sigchld, sigpipe;
 	int len;
-	char *argv[] = {CHKPWD_HELPER, NULL};
 	char *envp[] = {NULL};
 
 	D(("called"));
 
-	if (!pam_unix_param.helper)
-		return PAM_AUTH_ERR;
-
 	/* create a pipe for the password */
 	if (pipe(fds)) {
 		D(("could not make pipe"));
+		retval = 1;
 		goto out;
 	}
 	if (pipe(retpipe)) {
 		D(("could not make pipe"));
+		retval = 1;
 		goto out_pipe;
 	}
 
@@ -311,6 +311,7 @@ static int unix_run_helper_binary(const char *user, const char *pass)
 	switch ((child = fork())) {
 	case -1:
 		D(("fork failed"));
+		retval = 1;
 		goto out_signal;
 
 	case 0:
@@ -327,7 +328,7 @@ static int unix_run_helper_binary(const char *user, const char *pass)
 			_exit(1);
 
 		/* exec binary helper */
-		execve(pam_unix_param.helper, argv, envp);
+		execve(helper_binary, argv, envp);
 
 		/* should not get here: exit with error */
 		D(("helper binary is not available"));
@@ -337,39 +338,29 @@ static int unix_run_helper_binary(const char *user, const char *pass)
 		/* wait for child */
 		close(fds[0]);
 		close(retpipe[1]);
-		if (on(UNIX__NULLOK)) {
-			if (write_loop(fds[1], "nullok\0\0", 8) != 8)
-				fail = 1;
-		} else {
-			if (write_loop(fds[1], "nonull\0\0", 8) != 8)
-				fail = 1;
-		}
+		if (write_loop(fds[1], config, 8) != 8)
+			retval = 1;
 		len = strlen(user) + 1;
-		if (write_loop(fds[1], user, len) != len)
-			fail = 1;
-		else {
+		if (write_loop(fds[1], user, len) != len) {
+			retval = 1;
+		} else {
 			len = strlen(pass) + 1;
 			if (write_loop(fds[1], pass, len) != len)
-				fail = 1;
+				retval = 1;
 		}
 		pass = NULL;
 		close(fds[1]);
 		/* wait for helper to complete */
 		if (waitpid(child, &status, 0) != child) {
 			status = 0;
-			fail = 1;
+			retval = 1;
 		}
-		if (read_loop(retpipe[0], (char *)&retval, sizeof(retval)) !=
-		    sizeof(retval))
-			fail = 1;
+		if (read_loop(retpipe[0], (char *)retval_helper, retval_size) !=
+		    (int)retval_size)
+			retval = 1;
 		close(retpipe[0]);
 		if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
-			fail = 1;
-		if (fail)
-			retval = PAM_AUTH_ERR;
-		else
-			retval = (retval == TCB_MAGIC) ?
-			    PAM_SUCCESS : PAM_AUTH_ERR;
+			retval = 1;
 	}
 
 out_signal:
@@ -385,6 +376,37 @@ out_pipe:
 out:
 	D(("returning %d", retval));
 	return retval;
+}
+
+/*
+ * Verify the password of a user.
+ */
+
+static int run_chkpwd_binary(const char *user, const char *pass)
+{
+	char *argv[] = { CHKPWD_HELPER, "chkpwd", NULL };
+	char config[8];
+	int retval_helper;
+
+	if (!pam_unix_param.helper)
+		goto end;
+
+	if (on(UNIX__NULLOK)) {
+		memcpy(config, "nullok\0\0", 8);
+	} else {
+		memcpy(config, "nonull\0\0", 8);
+	}
+
+	if (unix_run_helper_binary (user, pass, pam_unix_param.helper,
+				    argv, config, (void *)&retval_helper,
+				    sizeof(retval_helper)))
+		goto end;
+
+	if (retval_helper == TCB_MAGIC)
+		return PAM_SUCCESS;
+
+end:
+	return PAM_AUTH_ERR;
 }
 
 static int check_crypt(pam_handle_t *pamh, const char *pass,
@@ -475,10 +497,10 @@ static int unix_verify_password_plain(pam_handle_t *pamh,
 	if (!salt) {
 		/* we're not faking, we have an existing user, so... */
 		uid_t uid = getuid();
-		if (uid == geteuid() && uid == pw->pw_uid && uid != 0) {
-			/* We are not root perhaps this is the reason? */
+		if (uid == geteuid() && (uid == pw->pw_uid || uid == 0)) {
+			/* We are not privileged enough perhaps this is the reason? */
 			D(("running helper binary"));
-			retval = unix_run_helper_binary(user, pass);
+			retval = run_chkpwd_binary(user, pass);
 		} else {
 			D(("user's record unavailable"));
 			pam_syslog(pamh, LOG_ALERT,
