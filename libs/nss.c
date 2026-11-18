@@ -13,27 +13,27 @@
 
 static __thread DIR *tcbdir = NULL;
 
-int _nss_tcb_setspent(void)
+enum nss_status _nss_tcb_setspent(void)
 {
 	if (!tcbdir) {
 		tcbdir = opendir(TCB_DIR);
 		if (!tcbdir)
 			return NSS_STATUS_UNAVAIL;
 
-		return 1;
+		return NSS_STATUS_SUCCESS;
 	}
 
 	rewinddir(tcbdir);
-	return 1;
+	return NSS_STATUS_SUCCESS;
 }
 
-int _nss_tcb_endspent(void)
+enum nss_status _nss_tcb_endspent(void)
 {
 	if (tcbdir) {
 		closedir(tcbdir);
 		tcbdir = NULL;
 	}
-	return 1;
+	return NSS_STATUS_SUCCESS;
 }
 
 /******************************************************************************
@@ -91,8 +91,8 @@ static FILE *tcb_safe_open(const char *file, const char *name)
 	return f;
 }
 
-int _nss_tcb_getspnam_r(const char *name, struct spwd *__result_buf,
-    char *__buffer, size_t __buflen, struct spwd **__result)
+enum nss_status _nss_tcb_getspnam_r(const char *name,
+    struct spwd *__result_buf, char *__buffer, size_t __buflen, int *__errnop)
 {
 	FILE *f;
 	char *file;
@@ -100,48 +100,71 @@ int _nss_tcb_getspnam_r(const char *name, struct spwd *__result_buf,
 
 	/* Disallow potentially-malicious user names */
 	if (!is_valid_username(name)) {
-		errno = ENOENT;
+		/* we don't serve an entry here */
+		*__errnop = ENOENT;
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	if (asprintf(&file, TCB_FMT, name) < 0)
+	if (asprintf(&file, TCB_FMT, name) < 0) {
+		/* retry, as malloc or another resource has failed */
+		*__errnop = EAGAIN;
 		return NSS_STATUS_TRYAGAIN;
+	}
+
 	f = tcb_safe_open(file, name);
 	free(file);
-	if (!f)
-		return errno == ENOENT ? NSS_STATUS_NOTFOUND : NSS_STATUS_UNAVAIL;
+	if (!f) {
+		/* $user/shadow not existing nor readable */
+		*__errnop = ENOENT;
+		return NSS_STATUS_UNAVAIL;
+	}
 
-	retval = fgetspent_r(f, __result_buf, __buffer, __buflen, __result);
+	retval = fgetspent_r(f, __result_buf, __buffer,
+	    __buflen, &__result_buf);
 	saved_errno = errno;
 	fclose(f);
 	errno = saved_errno;
-	if (!retval)
-		return NSS_STATUS_SUCCESS;
 
-	switch (saved_errno) {
+	/* real error number is retval from fgetspent_r(),
+	   by NSS spec errnop *MUST NOT* be set to 0 */
+	if (retval)
+		*__errnop = retval;
+
+	switch (retval) {
 	case 0:
+		/* no error, entry found */
 		return NSS_STATUS_SUCCESS;
 
 	case ENOENT:
+		/* if the file would not exist nor be readable, we would
+		   have already bailed out with ENOENT/NSS_STATUS_UNAVAIL
+		   immediately after the call to tcb_safe_open() */
 		return NSS_STATUS_NOTFOUND;
 
+	case EAGAIN:
+		/* ressources are temporary not available */
+		return NSS_STATUS_TRYAGAIN;
+
 	case ERANGE:
+		/* buffer too small */
 		return NSS_STATUS_TRYAGAIN;
 
 	default:
+		/* something else, e.g. parser error, but we can't help it */
 		return NSS_STATUS_UNAVAIL;
 	}
 }
 
-int _nss_tcb_getspent_r(struct spwd *__result_buf,
-    char *__buffer, size_t __buflen, struct spwd **__result)
+enum nss_status _nss_tcb_getspent_r(struct spwd *__result_buf,
+    char *__buffer, size_t __buflen, int *__errnop)
 {
 	struct dirent *result;
 	off_t currpos;
 	int retval, saved_errno;
 
 	if (!tcbdir) {
-		errno = ENOENT;
+		/* tcbdir does not exist */
+		*__errnop = ENOENT;
 		return NSS_STATUS_UNAVAIL;
 	}
 
@@ -154,12 +177,16 @@ int _nss_tcb_getspent_r(struct spwd *__result_buf,
 			closedir(tcbdir);
 			errno = saved_errno;
 			tcbdir = NULL;
+			/* cannot iterate tcbdir */
+			*__errnop = ENOENT;
 			return NSS_STATUS_UNAVAIL;
 		}
 		if (!result) {
 			closedir(tcbdir);
-			errno = ENOENT;
+			errno = saved_errno;
 			tcbdir = NULL;
+			/* we have no more entries in tcbdir */
+			*__errnop = ENOENT;
 			return NSS_STATUS_NOTFOUND;
 		}
 		errno = saved_errno;
@@ -167,8 +194,9 @@ int _nss_tcb_getspent_r(struct spwd *__result_buf,
 	    !strcmp(result->d_name, "..") || result->d_name[0] == ':');
 
 	retval = _nss_tcb_getspnam_r(result->d_name, __result_buf, __buffer,
-	    __buflen, __result);
+	    __buflen, __errnop);
 
+	/* errnop has already been set by _nss_tcb_getspnam_r() */
 	switch (retval) {
 	case NSS_STATUS_SUCCESS:
 		return NSS_STATUS_SUCCESS;
